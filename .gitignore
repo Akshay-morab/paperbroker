@@ -5,6 +5,9 @@
 
 # local data
 *.db
+*.db-shm
+*.db-wal
+*.db-journal
 *.sqlite
 .testmuai/evidence/
 
