@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { api, Profile, Quote } from '../api'
 
 const fmtMoney = (n: number) =>
@@ -63,6 +63,12 @@ export default function Dashboard() {
         </div>
       </header>
 
+      <nav className="nav">
+        <Link to="/">Watchlist</Link>
+        <Link to="/portfolio">Portfolio</Link>
+        <Link to="/orders">Orders</Link>
+      </nav>
+
       {!loaded && <p className="muted">Loading…</p>}
 
       <table className="quotes">
@@ -77,7 +83,9 @@ export default function Dashboard() {
         <tbody>
           {quotes.map((q) => (
             <tr key={q.symbol}>
-              <td className="mono">{q.symbol}</td>
+              <td className="mono">
+                <Link to={`/stocks/${q.symbol}`}>{q.symbol}</Link>
+              </td>
               <td>{q.name}</td>
               <td className="mono">{fmtMoney(q.price)}</td>
               <td className={q.change_pct >= 0 ? 'up' : 'down'}>

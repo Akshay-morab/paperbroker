@@ -190,3 +190,101 @@ table.quotes {
 .down {
   color: #e5484d;
 }
+
+/* --- nav -------------------------------------------------------------------- */
+
+.nav {
+  display: flex;
+  gap: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.nav a {
+  color: #7fa3f5;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.nav a:hover {
+  text-decoration: underline;
+}
+
+/* --- stock detail ------------------------------------------------------------- */
+
+.spark {
+  width: 160px;
+  height: 48px;
+}
+
+.big-price {
+  font-size: 1.6rem;
+  margin: 0.25rem 0 0;
+  font-family: ui-monospace, Consolas, monospace;
+}
+
+.ticket {
+  background: #161b24;
+  border: 1px solid #232a36;
+  border-radius: 12px;
+  padding: 1.25rem;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.ticket h2 {
+  font-size: 1rem;
+  margin: 0;
+}
+
+.side-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.side {
+  background: #232a36;
+  color: #aab3c5;
+  flex: 1;
+}
+
+.active-buy {
+  background: #1d7a4a;
+  color: #fff;
+}
+
+.active-sell {
+  background: #a63a3f;
+  color: #fff;
+}
+
+.place-buy {
+  background: #2e6df6;
+}
+
+.place-sell {
+  background: #c2410c;
+}
+
+/* --- banners / toasts ---------------------------------------------------------- */
+
+.banner {
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  margin: 0.5rem 0 0;
+}
+
+.banner.ok {
+  background: #11331f;
+  color: #2fbf71;
+  border: 1px solid #1d7a4a;
+}
+
+.banner.error {
+  background: #3a1618;
+  color: #e5484d;
+  border: 1px solid #a63a3f;
+}
