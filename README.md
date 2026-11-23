@@ -33,7 +33,23 @@ Building — solo hack week, Nov 21–27, 2026. Daily progress in [BUILD_LOG.md]
 
 ## Run it
 
-_One command — instructions land here with the scaffold (deployed URL target: Wed Nov 25)._
+Two terminals, one origin (Vite proxies `/api` to the backend — no CORS):
+
+```bash
+# backend (Python 3.10+)
+cd backend
+python -m venv .venv
+.venv\Scripts\pip install -e ".[dev]"        # macOS/Linux: .venv/bin/pip
+.venv\Scripts\python -m app.seed             # instruments + demo personas
+.venv\Scripts\uvicorn app.main:app --reload  # API on http://127.0.0.1:8000
+
+# frontend (Node 18+)
+cd frontend
+npm install
+npm run dev                                  # http://localhost:5173
+```
+
+On the EC2 box, nginx serves the built frontend and proxies `/api` — see [DESIGN.md §6](./DESIGN.md).
 
 ## Demo logins (for judges)
 

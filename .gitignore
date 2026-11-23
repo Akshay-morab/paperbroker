@@ -11,6 +11,7 @@
 # python
 __pycache__/
 .venv/
+*.egg-info/
 
 # node
 node_modules/

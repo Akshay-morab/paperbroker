@@ -592,7 +592,7 @@ attach a recorded suite run to the README, and fix the box with Friday's buffer.
 | 2 | `buy_fills_test.md` (smoke) | fresh | toast "Order filled", portfolio row, cash drops |
 | 3 | `insufficient_cash_test.md` | fresh | banner "Rejected: insufficient cash" |
 | 4 | `sell_roundtrip_test.md` (smoke) | fresh | holding closes, cash rises, orders row w/ price |
-| 5 | `kill_switch_test.md` | tilted | any trade → "daily loss limit reached" + locked banner |
+| 5 | `kill_switch_test.md` | tilted | sell the remaining 10 TSLA → realized loss crosses the limit → locked banner appears; then a further attempt → "daily loss limit reached" |
 | 6 | `overtrade_test.md` | fresh | 10 fills OK, 11th → "daily trade limit reached (10/10)" |
 | 7 | `position_size_test.md` | fresh | oversized buy → "position size cap" |
 | 8 | `unknown_symbol_test.md` | fresh | 404 message "unknown symbol" |
