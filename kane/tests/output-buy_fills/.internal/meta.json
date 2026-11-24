@@ -1,0 +1,18 @@
+{
+  "test_id": "68bb8d6f-edf3-4e38-8f43-eaeff380a7a9",
+  "project_id": "01M87BAPXSJASXZ2N6J686YV5B",
+  "folder_id": "01M87BARANH8MJFZHEGR5CQ3PH",
+  "org_id": "3450718",
+  "session_name": "buy_fills",
+  "commit_id": "e73c2396-3c48-4fb0-88cf-1763bec93586",
+  "testcase_id": "01M87JSMDEBD4FZ5HYTNA9Z6DZ",
+  "executions": [
+    {
+      "execution_id": "46dc0b1e-a813-4e8a-8868-6b10cd223438",
+      "run_kind": "author",
+      "status": "passed",
+      "valid": true,
+      "at": "2026-11-24T20:11:51.525Z"
+    }
+  ]
+}
