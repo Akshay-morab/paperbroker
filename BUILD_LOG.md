@@ -25,3 +25,15 @@ The daily ritual (DESIGN.md §8.3): one entry per day — what worked, what bit,
 - **Reload gotcha:** uvicorn's StatReload (Windows) announced a reload but never restarted —
   the old process kept serving, so new routes 404'd after edits. Symptom to remember: if a
   change doesn't show up, restart the server before debugging the code.
+- **Tue Nov 24 — guardrails complete (pulled forward from Wed):** the five real rules live in
+  the gate, discipline status endpoint + Discipline page, admin persona reset. 32/32 pytest.
+  Two design discoveries worth the log:
+  1. The old tilted persona (9 straight losses) would ALREADY be in cooldown — the kill-switch
+     demo could never fire. Reseeded as 6 panic dumps + 3 small winners (same net −$9,700,
+     same cash) so the trailing winners break the streak. Richer story, too.
+  2. Validation now runs BEFORE the guardrail gate (DESIGN §3.3 flipped): otherwise a fresh
+     account can never see "insufficient cash" — any oversize order trips the position-size
+     cap first, since cash starts at 100% of equity.
+  Bug wall additions: `{mm:ss}` is format-spec syntax, not a placeholder (KeyError at render);
+  persona re-seed deleted orders before the cash rows referencing them (FK violation) — delete
+  order fixed. Kane flows #5-8 written; deploy runbook scripted (scripts/deploy-ec2.sh).

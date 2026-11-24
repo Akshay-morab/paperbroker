@@ -15,6 +15,8 @@ GitHub renames are free and redirect, so the final brand can land any time this 
   - **Overtrade cap** — 10 trades a day; the 11th is refused, with a reason
   - **Tilt cooldown** — three straight losses buys you a forced break
   - **Position-size cap & max open positions** — no single idea can sink the account
+- **A Discipline page** — every rule's live status: loss budget, trades used,
+  cooldown countdown, position caps
 
 ## How it's built & verified
 
@@ -49,7 +51,8 @@ npm install
 npm run dev                                  # http://localhost:5173
 ```
 
-On the EC2 box, nginx serves the built frontend and proxies `/api` — see [DESIGN.md §6](./DESIGN.md).
+On the EC2 box, nginx serves the built frontend and proxies `/api` — one command:
+`sudo ./scripts/deploy-ec2.sh <repo-url>` (runbook: DESIGN.md §6).
 
 ## Demo logins (for judges)
 
