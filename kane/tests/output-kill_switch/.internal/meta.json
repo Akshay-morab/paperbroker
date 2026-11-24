@@ -1,0 +1,18 @@
+{
+  "commit_id": "de92764b-e831-4d0a-971f-1872a7529305",
+  "test_id": "215c9f78-3aae-4c63-a1b0-73a7b7daff6a",
+  "testcase_id": "01M87KRJ4BV5KQTD4AR5RB2MQF",
+  "project_id": "01M87BAPXSJASXZ2N6J686YV5B",
+  "folder_id": "01M87BARANH8MJFZHEGR5CQ3PH",
+  "org_id": "3450718",
+  "session_name": "kill_switch",
+  "executions": [
+    {
+      "execution_id": "9edb2faa-9b50-4130-a43f-18b126d2ce24",
+      "run_kind": "author",
+      "status": "passed",
+      "valid": true,
+      "at": "2026-11-24T20:35:49.480Z"
+    }
+  ]
+}
