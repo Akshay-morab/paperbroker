@@ -62,6 +62,7 @@ def stock_detail(symbol: str, _user=Depends(get_current_user), db: Session = Dep
                 "sector": profile.sector,
                 "eps": profile.eps,
                 "shares_outstanding": profile.shares_outstanding,
+                "dividend_yield": profile.dividend_yield,
                 "fifty_two_week_high": profile.fifty_two_week_high,
                 "fifty_two_week_low": profile.fifty_two_week_low,
                 "founded_year": profile.founded_year,

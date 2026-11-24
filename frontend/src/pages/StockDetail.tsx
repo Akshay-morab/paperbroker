@@ -433,7 +433,10 @@ export default function StockDetail() {
                       <Text c="dimmed" size="xs">Founded {profile.founded_year}</Text>
                     )}
                     <Text c="dimmed" size="xs">
-                      Dividend yield: {profile.dividend_yield.toFixed(2)}% annually
+                      Dividend yield:{' '}
+                      {profile.dividend_yield != null
+                        ? `${profile.dividend_yield.toFixed(2)}% annually`
+                        : '—'}
                     </Text>
                   </Group>
                   <Text size="sm">{profile.description}</Text>
