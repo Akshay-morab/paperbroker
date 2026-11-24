@@ -12,6 +12,7 @@ from .engines.ledger.api import router as portfolio_router
 from .engines.orders.api import router as orders_router
 from .engines.prices.api import router as stocks_router
 from .engines.prices.engine import price_engine
+from .engines.watchlist.api import router as watchlist_router
 
 
 @asynccontextmanager
@@ -29,6 +30,7 @@ app = FastAPI(title="PaperBroker API", version="0.1.0", lifespan=lifespan)
 app.include_router(auth_router, prefix="/api")
 app.include_router(me_router, prefix="/api")
 app.include_router(stocks_router, prefix="/api")
+app.include_router(watchlist_router, prefix="/api")
 app.include_router(orders_router, prefix="/api")
 app.include_router(portfolio_router, prefix="/api")
 app.include_router(guardrails_router, prefix="/api")

@@ -15,6 +15,7 @@ from sqlalchemy import (
     PrimaryKeyConstraint,
     String,
     Text,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -82,6 +83,17 @@ class StockFinancial(Base):
     year: Mapped[int] = mapped_column(Integer, nullable=False)
     revenue: Mapped[float] = mapped_column(Float, nullable=False)
     net_profit: Mapped[float] = mapped_column(Float, nullable=False)
+
+
+class WatchlistItem(Base):
+    """A user's starred shares (per-user watchlist, Nov 25)."""
+
+    __tablename__ = "watchlist_items"
+    __table_args__ = (UniqueConstraint("user_id", "symbol"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    symbol: Mapped[str] = mapped_column(String(12), ForeignKey("stocks.symbol"), nullable=False)
 
 
 class RulesConfig(Base):
