@@ -73,3 +73,10 @@ The daily ritual (DESIGN.md §8.3): one entry per day — what worked, what bit,
   (1 real minute = 1 simulated quarter, credited as genuine ledger rows; yields seeded
   per stock). ensure_schema() added because SQLite create_all never ALTERs — the
   dividend_yield column landed on the shipped DB without data loss. 36/36 pytest.
+- **Thu Nov 26 (~4 AM) — popups, not banners (user feedback):** blocked/rejected reasons
+  now pop up as a closable modal (~2s) with a warning icon, matching the success popup;
+  the inline alerts are retired. Because 2-second popups are racy for Kane's ~6s
+  click-to-assert latency, all flow assertions were moved to the persistent records —
+  order-history entries, the discipline lock, portfolio rows. Ephemeral UI for humans,
+  permanent records for verification. Also fixed a live crash: dividend_yield missing
+  from the profile API payload → blank stock page (caught by the human, fixed in minutes).

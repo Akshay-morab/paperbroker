@@ -15,5 +15,4 @@ Click "Need an account? Sign up", create an account with the email {{smart.rando
 ## Buy 10 AAPL from All Shares
 On the All Shares page, click the AAPL stock card.
 On the AAPL page, enter quantity 10 in the Buy card and click the Buy button.
-Verify the text "Order filled" appears.
 Then open the Portfolio and verify a row for AAPL shows 10 shares, with Cash lower than $100,000.00.

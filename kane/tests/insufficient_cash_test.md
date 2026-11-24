@@ -15,5 +15,5 @@ Click "Need an account? Sign up", create an account with the email {{smart.rando
 ## Try to buy far more than the cash balance
 On the All Shares page, click the AAPL stock card.
 Enter quantity 100000 in the Buy card and click the Buy button.
-Verify the banner shows "Rejected: insufficient cash".
+Open the Orders page and verify the newest entry shows status "rejected" and the reason "Rejected: insufficient cash".
 Then click the "Profile" tab in the corner, open "User Profile Details", and verify the text "Cash: $100,000.00".

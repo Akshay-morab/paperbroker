@@ -17,9 +17,8 @@ Log in with tilted@demo and password demo1234, and verify the All Shares page lo
 
 ## The trip: sell the remaining TSLA at a loss
 On the All Shares page, click the TSLA stock card. In the Sell card, enter quantity 10 and click the Sell button.
-Verify "Order filled" appears.
 
 ## Verify the lock
 Open http://localhost:5173/discipline and verify the text "Trading locked until tomorrow." is visible.
 Then go back to All Shares, open the AAPL stock card, and in the Buy card enter quantity 1 and click the Buy button.
-Verify the banner shows "Blocked: daily loss limit reached. Trading locked until tomorrow."
+Open http://localhost:5173/orders and verify the newest entry shows status "blocked" and a reason containing "daily loss limit reached".

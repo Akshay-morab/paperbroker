@@ -15,7 +15,7 @@ import {
   Text,
   Title,
 } from '@mantine/core'
-import { IconCircleCheck, IconStar, IconStarFilled } from '@tabler/icons-react'
+import { IconAlertTriangle, IconCircleCheck, IconStar, IconStarFilled } from '@tabler/icons-react'
 import { createChart, IChartApi, UTCTimestamp } from 'lightweight-charts'
 import Shell from '../components/Shell'
 import SymbolAvatar from '../components/SymbolAvatar'
@@ -235,9 +235,8 @@ export default function StockDetail() {
   const [starred, setStarred] = useState(false)
   const [buyQty, setBuyQty] = useState('10')
   const [sellQty, setSellQty] = useState('10')
-  const [toast, setToast] = useState('') // "Order filled" — Kane asserts this text
-  const [banner, setBanner] = useState('')
-  const [purchase, setPurchase] = useState('') // the popup text
+  const [banner, setBanner] = useState('') // blocked/rejected reason — popup, ~2s
+  const [purchase, setPurchase] = useState('') // the success popup text
   const [busy, setBusy] = useState(false)
   const tradeRef = useRef<HTMLDivElement>(null)
 
@@ -270,11 +269,12 @@ export default function StockDetail() {
     }
   }, [symbol])
 
+  // The blocked/rejected popup: ~2 seconds, closable (user feedback, Nov 26).
   useEffect(() => {
-    if (!toast) return
-    const id = setTimeout(() => setToast(''), 4000)
+    if (!banner) return
+    const id = setTimeout(() => setBanner(''), 2000)
     return () => clearTimeout(id)
-  }, [toast])
+  }, [banner])
 
   useEffect(() => {
     if (!purchase) return
@@ -294,14 +294,12 @@ export default function StockDetail() {
 
   async function placeOrder(side: 'buy' | 'sell', qtyStr: string) {
     setBusy(true)
-    setToast('')
     setBanner('')
     try {
       const order = await api<PlacedOrder>('/api/orders', {
         method: 'POST',
         body: JSON.stringify({ symbol, side, quantity: Number(qtyStr) }),
       })
-      setToast('Order filled')
       setPurchase(
         `${side === 'buy' ? 'You bought' : 'You sold'} ${order.quantity} ${order.symbol} shares for ${fmtMoney(
           order.filled_price ?? 0
@@ -553,30 +551,39 @@ export default function StockDetail() {
           </SimpleGrid>
         </div>
 
-        {toast && (
-          <Alert role="status" color="teal" maw={520}>
-            {toast}
-          </Alert>
-        )}
-        {banner && (
-          <Alert role="alert" color="red" maw={520}>
-            {banner}
-          </Alert>
-        )}
       </Stack>
 
+      {/* Success popup: ~2s, closable. */}
       <Modal
         opened={!!purchase}
         onClose={() => setPurchase('')}
         centered
-        withCloseButton={false}
         radius="lg"
         overlayProps={{ blur: 2 }}
         trapFocus={false}
+        withCloseButton
       >
         <Stack align="center" py="xl">
           <IconCircleCheck size={52} color="#2fbf71" stroke={1.5} />
           <Text fz="lg" fw={600} ta="center">{purchase}</Text>
+        </Stack>
+      </Modal>
+
+      {/* Blocked/rejected popup: ~2s, closable — the reason string stays verbatim
+          (DESIGN §3.4) and the attempt is permanently recorded in order history. */}
+      <Modal
+        opened={!!banner}
+        onClose={() => setBanner('')}
+        centered
+        radius="lg"
+        overlayProps={{ blur: 2 }}
+        trapFocus={false}
+        withCloseButton
+      >
+        <Stack align="center" py="xl">
+          <IconAlertTriangle size={52} color="#e5484d" stroke={1.5} />
+          <Text fz="lg" fw={600} ta="center" role="alert">{banner}</Text>
+          <Text c="dimmed" size="xs">Recorded in your order history</Text>
         </Stack>
       </Modal>
     </Shell>

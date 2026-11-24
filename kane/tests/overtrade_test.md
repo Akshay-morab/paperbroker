@@ -15,9 +15,8 @@ If shares are visible on a dashboard, click the "Profile" tab in the corner, the
 Log in with tilted@demo and password demo1234, and verify the All Shares page loads.
 
 ## The 10th trade goes through
-On the All Shares page, click the AAPL stock card. In the Buy card, enter quantity 1 and click the Buy button, and verify "Order filled" appears.
+On the All Shares page, click the AAPL stock card. In the Buy card, enter quantity 1 and click the Buy button.
 
 ## The 11th is blocked
-Enter quantity 1 again in the Buy card and click the Buy button, and verify the banner shows
-"Blocked: daily trade limit reached (10/10)."
-Open http://localhost:5173/orders and verify an entry shows status "blocked".
+Enter quantity 1 again in the Buy card and click the Buy button.
+Open http://localhost:5173/orders and verify the newest entry shows status "blocked" and a reason containing "daily trade limit reached (10/10)".

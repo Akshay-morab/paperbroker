@@ -14,5 +14,5 @@ Click "Need an account? Sign up", create an account with the email {{smart.rando
 
 ## Oversize the order
 On the All Shares page, click the AAPL stock card. In the Buy card, enter quantity 200 and click the Buy button.
-Verify the banner shows "Blocked: order exceeds position size cap (20% of equity)."
+Open http://localhost:5173/orders and verify the newest entry shows status "blocked" and a reason containing "position size cap".
 Then open http://localhost:5173/discipline and verify the "Position size cap" card shows 20%.
