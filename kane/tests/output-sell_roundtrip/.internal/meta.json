@@ -1,0 +1,18 @@
+{
+  "test_id": "213ef4e9-edc5-4c86-b148-05e1633fc66b",
+  "project_id": "01M87BAPXSJASXZ2N6J686YV5B",
+  "folder_id": "01M87BARANH8MJFZHEGR5CQ3PH",
+  "org_id": "3450718",
+  "session_name": "sell_roundtrip",
+  "commit_id": "a4b1c794-ebfc-4474-8b82-33eea1e4e2f6",
+  "testcase_id": "01M87K8T8FJ81KGMCQ1RSK7W9R",
+  "executions": [
+    {
+      "execution_id": "9e8328a6-1d7a-44fb-9f7b-747467bdb735",
+      "run_kind": "author",
+      "status": "passed",
+      "valid": true,
+      "at": "2026-11-24T20:24:50.423Z"
+    }
+  ]
+}
