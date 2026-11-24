@@ -89,3 +89,19 @@ The daily ritual (DESIGN.md §8.3): one entry per day — what worked, what bit,
   Lesson, now a rule: long-lived watchers lie — uvicorn's StatReload already proved it,
   Vite confirmed it. Restart the servers before debugging the code. Ctrl+Shift+R for
   the human after a wedged dev session.
+- **Thu Nov 26 (~6 AM) — SUITE GREEN: 8/8, and flow 5 earned its bug-wall plaque:**
+  the full re-run on the frozen UI finished with every flow passed and every recording
+  committed (kane/tests/output-*). Flow 5 (kill switch) went RED first — and the failure
+  was a real product bug no human had noticed: ~20h of live uptime had let the seeded
+  random walk drift TSLA +265% above base, so the tilted persona's "panic" sells would
+  fill at GAINS, never cross the −$10k line, and the kill-switch demo was silently
+  disarmed. Kane caught it because it asserted on the persistent record, not the
+  visual. Fix: mean reversion in the price walk (0.002 pull toward base_price each
+  tick; 36/36 pytest re-run), backend restarted so prices re-anchor at base. Same
+  flow then went GREEN: tilted sells 10 TSLA → "Trading locked until tomorrow." on
+  /discipline → attempted buy blocked with the byte-exact reason. Flows 6–8 followed:
+  overtrade (10 filled, the 11th blocked "daily trade limit reached (10/10)"),
+  position size (200-share AAPL buy blocked at the 20% cap), unknown symbol
+  (/stocks/NOPE shows "unknown symbol"). Second plaque lesson: stateful sims drift —
+  an agent that never sleeps catches the bugs an evening of eyeballing can't.
+  Remaining: EC2 deploy, 3-min video, submission form.
