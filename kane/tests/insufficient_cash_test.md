@@ -13,6 +13,6 @@ If the page shows "Cash:" on a dashboard, click "Log out" and wait for the login
 Click "Need an account? Sign up", create an account with the email {{smart.random_email}} and password DemoPass123, and verify "Cash: $100,000.00" appears.
 
 ## Try to buy far more than the cash balance
-Click the AAPL symbol on the watchlist.
-Choose Buy, quantity 100000, and place the order.
+Click the AAPL stock card on the watchlist.
+Enter quantity 100000 and click the Buy button.
 Verify the banner shows "Rejected: insufficient cash" and Cash still reads $100,000.00.

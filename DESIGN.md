@@ -239,8 +239,8 @@ Ops page (admin only)          backend                          box
 | Page | Contents | Kane-relevant text |
 |---|---|---|
 | Login/Signup | form, error text | "Signed in as X", "Cash: $100,000.00" |
-| Dashboard | watchlist table w/ live prices, guardrail status bar | symbol rows, "trades today: N/10" |
-| StockDetail | chart, quote, **fundamentals panel** (company, sector, live P/E, market cap, 52-wk range, quarterly results bars — §3.2b, **Phase 2**), **OrderTicket** (buy/sell, qty), block/reject banners | banners render backend reason strings verbatim |
+| Dashboard | watchlist as a **grid of large clickable stock cards** (symbol, name, live price, change badge — the whole card is the link, per user feedback Nov 24) | symbol cards; header cash |
+| StockDetail | **candlestick chart** (lightweight-charts), quote header, **direct Buy / Sell buttons** (no toggle), quantity input, **4-second "Order filled" toast** with fill details, block/reject banners | banners/toasts render backend reason strings verbatim |
 | Portfolio | cash, holdings w/ live P&L, equity | row per holding, "Equity: $X" |
 | Orders | history table: symbol, side, qty, price, status, reason | status + reason text |
 | Discipline | per-rule cards: used/limit, loss so far, cooldown countdown | "locked until tomorrow", countdown |

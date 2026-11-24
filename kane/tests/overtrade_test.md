@@ -15,9 +15,9 @@ If a dashboard with "Cash:" is visible, click "Log out".
 Log in with tilted@demo and password demo1234.
 
 ## The 10th trade goes through
-Open AAPL from the watchlist, choose Buy, quantity 1, place the order, and verify "Order filled" appears.
+Click the AAPL stock card on the watchlist, enter quantity 1, click the Buy button, and verify "Order filled" appears.
 
 ## The 11th is blocked
-Choose Buy, quantity 1 again, place the order, and verify the banner shows
+Enter quantity 1 again and click the Buy button, and verify the banner shows
 "Blocked: daily trade limit reached (10/10)."
 Open http://localhost:5173/orders and verify the last row shows status "blocked".
