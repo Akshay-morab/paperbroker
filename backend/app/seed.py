@@ -15,6 +15,7 @@ Run the seed on the same day you demo: 'today' comparisons are calendar-based.
 """
 
 import argparse
+import random
 from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
@@ -22,6 +23,7 @@ from sqlalchemy.orm import Session
 from .auth import service as auth_service
 from .core.config import admin_emails, admin_password, starting_cash
 from .models import CashTransaction, Holding, Order, RulesConfig, Session as SessionRow, Stock, User
+from .models import StockFinancial, StockProfile
 from .core.db import Base, SessionLocal, engine
 
 PERSONA_PASSWORD = "demo1234"
@@ -51,11 +53,71 @@ INSTRUMENTS = [
     {"symbol": "UBER", "name": "Uber Technologies", "base_price": 72.0, "volatility": 0.03, "seed": 2222},
 ]
 
+# Sector + a one-line blurb per instrument. Powers the fundamentals panel and
+# the "similar stocks" suggestions (same-sector peers).
+SECTOR_MAP = {
+    "AAPL": ("Technology", "Consumer electronics, software and services — the iPhone company."),
+    "MSFT": ("Technology", "Cloud, enterprise software and the Windows/Office franchise."),
+    "NVDA": ("Technology", "GPUs, AI accelerators and datacenter compute."),
+    "AMD": ("Technology", "CPUs, GPUs and adaptive silicon for computing."),
+    "INTC": ("Technology", "Semiconductor manufacturing and x86 processors."),
+    "ORCL": ("Technology", "Enterprise databases and cloud infrastructure."),
+    "CRM": ("Technology", "Customer relationship management software."),
+    "TSLA": ("Automotive", "Electric vehicles, energy storage and autonomy software."),
+    "AMZN": ("Consumer", "E-commerce, cloud (AWS), logistics and devices."),
+    "WMT": ("Consumer", "Global retail and grocery at scale."),
+    "DIS": ("Consumer", "Media, streaming, parks and franchises."),
+    "NKE": ("Consumer", "Athletic footwear and apparel."),
+    "KO": ("Consumer", "The world's largest non-alcoholic beverage system."),
+    "PEP": ("Consumer", "Snacks, food and beverages."),
+    "UBER": ("Consumer", "Ride-hailing, delivery and mobility platforms."),
+    "GOOG": ("Communication", "Search, advertising, YouTube and Android."),
+    "META": ("Communication", "Social platforms — Facebook, Instagram, WhatsApp."),
+    "NFLX": ("Communication", "Streaming entertainment and original content."),
+    "JPM": ("Finance", "Global investment and consumer banking."),
+    "V": ("Finance", "Payments network connecting merchants and issuers."),
+    "BA": ("Industrials", "Commercial aerospace and defense."),
+    "XOM": ("Energy", "Integrated oil, gas and petrochemicals."),
+}
+
 
 def seed_instruments(db: Session) -> None:
     for row in INSTRUMENTS:
         if not db.query(Stock).filter(Stock.symbol == row["symbol"]).first():
             db.add(Stock(**row))
+    db.commit()
+
+
+def seed_profiles(db: Session) -> None:
+    """Profiles + 5-year financials, derived deterministically from each symbol's
+    seed (same spirit as the price walk). Idempotent: existing rows are kept."""
+    from .models import StockFinancial, StockProfile
+
+    for row in INSTRUMENTS:
+        symbol = row["symbol"]
+        if db.get(StockProfile, symbol):
+            continue
+        sector, blurb = SECTOR_MAP[symbol]
+        rng = random.Random(row["seed"] * 7 + 1)
+
+        eps = round(row["base_price"] / rng.uniform(16, 30), 2)
+        shares = rng.randint(1_500_000_000, 12_000_000_000)
+        high = round(row["base_price"] * rng.uniform(1.15, 1.60), 2)
+        low = round(row["base_price"] * rng.uniform(0.55, 0.85), 2)
+        founded = rng.randint(1900, 2015)
+
+        db.add(
+            StockProfile(
+                symbol=symbol, description=blurb, sector=sector, eps=eps,
+                shares_outstanding=shares, fifty_two_week_high=high,
+                fifty_two_week_low=low, founded_year=founded,
+            )
+        )
+        for year in range(2021, 2026):
+            frng = random.Random(row["seed"] * 100 + year)
+            revenue = round(frng.uniform(20, 90) * (1.09 ** (year - 2021)), 2)
+            net_profit = round(revenue * frng.uniform(0.08, 0.30), 2)
+            db.add(StockFinancial(symbol=symbol, year=year, revenue=revenue, net_profit=net_profit))
     db.commit()
 
 
@@ -71,6 +133,16 @@ def _reset_user_rows(db: Session, email: str) -> None:
     db.query(SessionRow).filter(SessionRow.user_id == user.id).delete()
     db.query(User).filter(User.id == user.id).delete()
     db.commit()
+
+
+def _same_day(at: datetime, day_floor: datetime) -> datetime:
+    """Clamp a timestamp so it never falls before today's start.
+
+    The midnight gotcha (DESIGN.md §6.6): seeding 'N minutes ago' just after
+    00:00 puts those events on yesterday. Clamping keeps every persona's
+    narrative inside the current day, so 'today's trades' is always what the
+    guardrails expect. Re-seeding before demos remains good practice."""
+    return max(at, day_floor)
 
 
 def _create_persona(db: Session, email: str) -> User:
@@ -151,12 +223,13 @@ def seed_tilted(db: Session) -> None:
     # they break the 3-straight-losses streak, so the cooldown is NOT active and
     # the 10th trade reaches the kill switch (DESIGN §3.4 check order).
     # Cash check: 58,000 + 6x2,545 + 4,250 + 4,300 + 4,280 = 86,100.
+    day_floor = datetime.combine(now.date(), datetime.min.time()) + timedelta(minutes=1)
     sell_prices = [254.50] * 6 + [425.00, 430.00, 428.00]
     for i, price in enumerate(sell_prices):
         pnl = 10 * (price - 420.0)
         qty_delta = 10 * price
         cash += qty_delta
-        at = now - timedelta(minutes=[95, 88, 80, 70, 60, 45, 30, 20, 10][i])
+        at = _same_day(now - timedelta(minutes=[95, 88, 80, 70, 60, 45, 30, 20, 10][i]), day_floor)
         _filled_order(db, user.id, "TSLA", "sell", 10, price, pnl, at)
         _cash_move(db, user.id, qty_delta, "sell", cash, at)
 
@@ -180,11 +253,12 @@ def seed_cooldown(db: Session) -> None:
     # Holds 20 AAPL @ avg 300 after the three losing sells.
     db.add(Holding(user_id=user.id, symbol="AAPL", quantity=20, avg_cost=300.0))
 
+    day_floor = datetime.combine(now.date(), datetime.min.time()) + timedelta(minutes=1)
     for i, minutes_ago in enumerate([20, 12, 5]):
         price = 252.0  # 10 x (252 - 300) = -480 per sell
         pnl = 10 * (price - 300.0)
         cash += 10 * price
-        at = now - timedelta(minutes=minutes_ago)
+        at = _same_day(now - timedelta(minutes=minutes_ago), day_floor)
         _filled_order(db, user.id, "AAPL", "sell", 10, price, pnl, at)
         _cash_move(db, user.id, 10 * price, "sell", cash, at)
 
@@ -219,6 +293,7 @@ def main() -> None:
     try:
         if not args.personas_only:
             seed_instruments(db)
+            seed_profiles(db)
             seed_admins(db)
         seed_fresh(db)
         seed_tilted(db)

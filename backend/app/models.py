@@ -57,6 +57,33 @@ class Stock(Base):
     seed: Mapped[int] = mapped_column(Integer, nullable=False)
 
 
+class StockProfile(Base):
+    """1:1 content data for the detail page (DESIGN.md §3.2b — landed Nov 25)."""
+
+    __tablename__ = "stock_profiles"
+
+    symbol: Mapped[str] = mapped_column(String(12), ForeignKey("stocks.symbol"), primary_key=True)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    sector: Mapped[str] = mapped_column(String(60), nullable=False)
+    eps: Mapped[float] = mapped_column(Float, nullable=False)  # annual EPS; P/E derived live
+    shares_outstanding: Mapped[int] = mapped_column(Integer, nullable=False)
+    fifty_two_week_high: Mapped[float] = mapped_column(Float, nullable=False)
+    fifty_two_week_low: Mapped[float] = mapped_column(Float, nullable=False)
+    founded_year: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+
+class StockFinancial(Base):
+    """Yearly financials -> the 5-year revenue/profit bars (DESIGN.md §3.2b)."""
+
+    __tablename__ = "stock_financials"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    symbol: Mapped[str] = mapped_column(String(12), ForeignKey("stocks.symbol"), nullable=False)
+    year: Mapped[int] = mapped_column(Integer, nullable=False)
+    revenue: Mapped[float] = mapped_column(Float, nullable=False)
+    net_profit: Mapped[float] = mapped_column(Float, nullable=False)
+
+
 class RulesConfig(Base):
     __tablename__ = "rules_config"
 

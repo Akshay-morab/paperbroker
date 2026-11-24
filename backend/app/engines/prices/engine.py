@@ -10,6 +10,7 @@ import random
 from dataclasses import dataclass
 
 CANDLE_HISTORY = 120
+LONG_DAYS = 1826  # ~5 years of daily candles for the chart range buttons
 TICK_SECONDS = 3.0
 MIN_PRICE = 0.01
 
@@ -23,6 +24,7 @@ class SymbolState:
     session_open: float
     live_rng: random.Random
     candles: list[dict]
+    long_candles: list[dict]
 
 
 class PriceEngine:
@@ -54,6 +56,27 @@ class PriceEngine:
                     "c": round(price, 2),
                 }
             )
+
+        # ~5 years of daily candles for the chart range buttons (1M/2M/4M/6M/1Y/5Y).
+        # Damped volatility per day so the walk stays plausible over 1826 steps.
+        long_rng = random.Random(row.seed * 2000 + 13)
+        lp = row.base_price * 0.55
+        long_candles: list[dict] = []
+        for i in range(LONG_DAYS):
+            lprev = lp
+            lp = max(lprev * (1 + row.volatility * 0.35 * long_rng.gauss(0, 1)), MIN_PRICE)
+            lhi = max(lprev, lp) * (1 + abs(long_rng.gauss(0, 0.004)))
+            llo = min(lprev, lp) * (1 - abs(long_rng.gauss(0, 0.004)))
+            long_candles.append(
+                {
+                    "t": i,
+                    "o": round(lprev, 2),
+                    "h": round(lhi, 2),
+                    "l": round(llo, 2),
+                    "c": round(lp, 2),
+                }
+            )
+
         self._state[row.symbol.upper()] = SymbolState(
             symbol=row.symbol.upper(),
             name=row.name,
@@ -62,6 +85,7 @@ class PriceEngine:
             session_open=round(session_open, 2),
             live_rng=random.Random(row.seed),
             candles=candles,
+            long_candles=long_candles,
         )
 
     def load_from_db(self, db) -> None:
@@ -103,7 +127,7 @@ class PriceEngine:
         if not quote:
             return None
         state = self._state[symbol.upper()]
-        return {**quote, "candles": state.candles}
+        return {**quote, "candles": state.candles, "history": state.long_candles}
 
     def list_quotes(self) -> list[dict]:
         return [self.quote(s) for s in sorted(self._state)]

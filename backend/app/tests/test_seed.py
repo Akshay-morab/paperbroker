@@ -7,8 +7,8 @@ from datetime import datetime
 import pytest
 
 from app.core.db import Base, SessionLocal, engine
-from app.models import CashTransaction, Holding, Order, User
-from app.seed import seed_cooldown, seed_instruments, seed_tilted
+from app.models import CashTransaction, Holding, Order, StockFinancial, StockProfile, User
+from app.seed import seed_cooldown, seed_instruments, seed_profiles, seed_tilted
 
 
 @pytest.fixture(autouse=True)
@@ -17,9 +17,31 @@ def _tables():
     db = SessionLocal()
     try:
         seed_instruments(db)  # personas hold TSLA/AAPL — FKs need the instrument master
+        seed_profiles(db)
     finally:
         db.close()
     yield
+
+
+def test_profiles_and_financials_seeded():
+    db = SessionLocal()
+    try:
+        profile = db.get(StockProfile, "AAPL")
+        assert profile is not None
+        assert profile.sector == "Technology"
+        assert profile.eps > 0 and profile.shares_outstanding > 0
+
+        rows = (
+            db.query(StockFinancial)
+            .filter(StockFinancial.symbol == "AAPL")
+            .order_by(StockFinancial.year)
+            .all()
+        )
+        assert len(rows) == 5
+        assert rows[0].year < rows[-1].year
+        assert all(r.revenue > 0 for r in rows)
+    finally:
+        db.close()
 
 
 def _user(db, email):
