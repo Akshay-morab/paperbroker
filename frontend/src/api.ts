@@ -81,3 +81,14 @@ export type Position = {
 }
 
 export type PortfolioData = { cash: number; equity: number; positions: Position[] }
+
+export type GuardrailStatus = {
+  locked: boolean
+  lock_reason: string | null
+  state: { realized_today: number; trades_used: number; open_positions: number; equity: number }
+  daily_loss: { used: number; limit: number; remaining: number }
+  trade_cap: { used: number; limit: number }
+  cooldown: { active: boolean; until: string | null }
+  position_size_pct: number
+  open_positions_limit: number
+}

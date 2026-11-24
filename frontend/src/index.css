@@ -288,3 +288,31 @@ table.quotes {
   color: #e5484d;
   border: 1px solid #a63a3f;
 }
+
+/* --- discipline cards --------------------------------------------------------- */
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.card {
+  background: #161b24;
+  border: 1px solid #232a36;
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+}
+
+.card h2 {
+  font-size: 0.78rem;
+  margin: 0 0 0.5rem;
+  color: #8b94a7;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.card .big-price {
+  font-size: 1.4rem;
+  margin: 0;
+}

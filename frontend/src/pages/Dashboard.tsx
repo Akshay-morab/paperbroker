@@ -67,6 +67,7 @@ export default function Dashboard() {
         <Link to="/">Watchlist</Link>
         <Link to="/portfolio">Portfolio</Link>
         <Link to="/orders">Orders</Link>
+        <Link to="/discipline">Discipline</Link>
       </nav>
 
       {!loaded && <p className="muted">Loading…</p>}
