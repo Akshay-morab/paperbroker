@@ -1,35 +1,70 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Alert, Anchor, Button, Card, Group, NumberInput, SegmentedControl, Stack, Text, Title } from '@mantine/core'
+import { Alert, Button, Card, Group, NumberInput, Stack, Text, Title } from '@mantine/core'
+import { createChart, IChartApi, UTCTimestamp } from 'lightweight-charts'
 import Shell from '../components/Shell'
-import { api, ApiError, Candle, StockDetailData } from '../api'
+import { api, ApiError, Candle, PlacedOrder, StockDetailData } from '../api'
 
 const fmtMoney = (n: number) =>
   '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
-function Sparkline({ candles }: { candles: Candle[] }) {
-  const closes = candles.slice(-60).map((c) => c.c)
-  if (closes.length < 2) return null
-  const min = Math.min(...closes)
-  const max = Math.max(...closes)
-  const span = max - min || 1
-  const points = closes
-    .map((c, i) => `${(i / (closes.length - 1)) * 100},${28 - ((c - min) / span) * 26}`)
-    .join(' ')
-  return (
-    <svg viewBox="0 0 100 30" className="spark" preserveAspectRatio="none">
-      <polyline points={points} fill="none" stroke="#4c6ef5" strokeWidth="1" />
-    </svg>
-  )
+/** Real candlestick chart (TradingView's lightweight-charts). */
+function CandleChart({ candles }: { candles: Candle[] }) {
+  const holder = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!holder.current || candles.length === 0) return
+    const chart: IChartApi = createChart(holder.current, {
+      height: 300,
+      layout: { background: { color: 'transparent' }, textColor: '#8b94a7' },
+      grid: {
+        vertLines: { color: 'rgba(140,140,140,0.08)' },
+        horzLines: { color: 'rgba(140,140,140,0.08)' },
+      },
+      timeScale: { timeVisible: true, secondsVisible: false },
+      rightPriceScale: { borderVisible: false },
+    })
+    const series = chart.addCandlestickSeries({
+      upColor: '#2fbf71',
+      downColor: '#e5484d',
+      wickUpColor: '#2fbf71',
+      wickDownColor: '#e5484d',
+      borderVisible: false,
+    })
+    // Map the deterministic back-candles onto a plausible "minutes ago" axis.
+    const nowSec = Math.floor(Date.now() / 1000)
+    series.setData(
+      candles.map((c, i) => ({
+        time: (nowSec - (candles.length - 1 - i) * 3) as UTCTimestamp,
+        open: c.o,
+        high: c.h,
+        low: c.l,
+        close: c.c,
+      }))
+    )
+    chart.timeScale().fitContent()
+
+    const ro = new ResizeObserver(() => {
+      if (holder.current) chart.applyOptions({ width: holder.current.clientWidth })
+    })
+    ro.observe(holder.current)
+
+    return () => {
+      ro.disconnect()
+      chart.remove()
+    }
+  }, [candles])
+
+  return <div ref={holder} style={{ width: '100%' }} />
 }
 
 export default function StockDetail() {
   const { symbol = '' } = useParams()
   const [detail, setDetail] = useState<StockDetailData | null>(null)
   const [notFound, setNotFound] = useState(false)
-  const [side, setSide] = useState<'buy' | 'sell'>('buy')
   const [qty, setQty] = useState('10')
-  const [toast, setToast] = useState('')
+  const [toast, setToast] = useState('') // "Order filled" — Kane asserts this text
+  const [fillDetail, setFillDetail] = useState('')
   const [banner, setBanner] = useState('')
   const [busy, setBusy] = useState(false)
 
@@ -53,16 +88,33 @@ export default function StockDetail() {
     }
   }, [symbol])
 
-  async function placeOrder() {
+  // The success toast auto-dismisses after 4 seconds (user feedback, Nov 24).
+  // Kane asserts immediately after clicking, well inside the window.
+  useEffect(() => {
+    if (!toast) return
+    const id = setTimeout(() => {
+      setToast('')
+      setFillDetail('')
+    }, 4000)
+    return () => clearTimeout(id)
+  }, [toast])
+
+  async function placeOrder(side: 'buy' | 'sell') {
     setBusy(true)
     setToast('')
+    setFillDetail('')
     setBanner('')
     try {
-      await api('/api/orders', {
+      const order = await api<PlacedOrder>('/api/orders', {
         method: 'POST',
         body: JSON.stringify({ symbol, side, quantity: Number(qty) }),
       })
-      setToast('Order filled') // AC-3.1: the exact string Kane asserts
+      setToast('Order filled')
+      setFillDetail(
+        `${side === 'buy' ? 'Bought' : 'Sold'} ${order.quantity} ${order.symbol} @ ${fmtMoney(
+          order.filled_price ?? 0
+        )}`
+      )
       setQty('10')
     } catch (err) {
       // Rejected/blocked reasons render verbatim (DESIGN.md §3.4).
@@ -84,37 +136,34 @@ export default function StockDetail() {
 
   return (
     <Shell>
-      <Group justify="space-between" align="flex-start" mb="md" wrap="nowrap">
-        <Stack gap={0}>
-          <Title order={2}>
-            <span className="mono">{detail?.symbol ?? symbol}</span> — {detail?.name ?? '…'}
-          </Title>
-          {detail && (
-            <>
-              <Text fz="xl" fw={700} className="mono" c={detail.change_pct >= 0 ? 'teal' : 'red'}>
-                {fmtMoney(detail.price)} ({detail.change_pct >= 0 ? '+' : ''}
-                {detail.change_pct.toFixed(2)}%)
-              </Text>
-              <Text c="dimmed" size="xs">
-                Session open {fmtMoney(detail.session_open)} · simulated market
-              </Text>
-            </>
-          )}
-        </Stack>
-        {detail && <Sparkline candles={detail.candles} />}
-      </Group>
+      <Stack gap="md" mb="md">
+        <Group justify="space-between" align="flex-end" wrap="nowrap">
+          <Stack gap={0}>
+            <Title order={2}>
+              <span className="mono">{detail?.symbol ?? symbol}</span> — {detail?.name ?? '…'}
+            </Title>
+            {detail && (
+              <>
+                <Text fz="xl" fw={700} className="mono" c={detail.change_pct >= 0 ? 'teal' : 'red'}>
+                  {fmtMoney(detail.price)} ({detail.change_pct >= 0 ? '+' : ''}
+                  {detail.change_pct.toFixed(2)}%)
+                </Text>
+                <Text c="dimmed" size="xs">
+                  Session open {fmtMoney(detail.session_open)} · simulated market
+                </Text>
+              </>
+            )}
+          </Stack>
+        </Group>
 
-      <Card shadow="sm" padding="lg" radius="md" withBorder maw={430}>
+        <Card radius="md" withBorder padding="sm">
+          {detail ? <CandleChart candles={detail.candles} /> : <div style={{ height: 300 }} />}
+        </Card>
+      </Stack>
+
+      <Card shadow="sm" padding="lg" radius="md" withBorder maw={520}>
         <Title order={4} mb="sm">Place a market order</Title>
-        <Stack>
-          <SegmentedControl
-            value={side}
-            onChange={(v) => setSide(v as 'buy' | 'sell')}
-            data={[
-              { value: 'buy', label: 'Buy' },
-              { value: 'sell', label: 'Sell' },
-            ]}
-          />
+        <Group grow align="flex-end" gap="sm" wrap="nowrap">
           <NumberInput
             label="Quantity"
             min={1}
@@ -122,24 +171,29 @@ export default function StockDetail() {
             value={qty}
             onChange={(v) => setQty(String(v ?? ''))}
           />
-          <Button
-            color={side === 'buy' ? 'indigo' : 'red'}
-            onClick={placeOrder}
-            loading={busy}
-          >
-            {side === 'buy' ? 'Place buy order' : 'Place sell order'}
+          <Button size="md" color="teal" onClick={() => placeOrder('buy')} loading={busy}>
+            Buy
           </Button>
-          {toast && (
-            <Alert role="status" color="teal">
-              {toast}
-            </Alert>
-          )}
-          {banner && (
-            <Alert role="alert" color="red">
-              {banner}
-            </Alert>
-          )}
-        </Stack>
+          <Button size="md" color="red" onClick={() => placeOrder('sell')} loading={busy}>
+            Sell
+          </Button>
+        </Group>
+
+        {toast && (
+          <Alert role="status" color="teal" mt="sm">
+            {toast}
+          </Alert>
+        )}
+        {fillDetail && (
+          <Text c="teal" size="sm" mt="xs">
+            {fillDetail}
+          </Text>
+        )}
+        {banner && (
+          <Alert role="alert" color="red" mt="sm">
+            {banner}
+          </Alert>
+        )}
       </Card>
     </Shell>
   )

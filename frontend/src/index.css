@@ -4,7 +4,42 @@
   font-family: ui-monospace, Consolas, monospace;
 }
 
-.spark {
-  width: 170px;
-  height: 52px;
+/* --- stock cards: the whole card is a link, so give it a live feel ----------- */
+
+.stock-card {
+  transition: transform 0.15s ease, border-color 0.15s ease;
+  cursor: pointer;
+}
+
+.stock-card:hover {
+  transform: translateY(-3px);
+  border-color: #4c6ef5 !important;
+}
+
+/* --- login split layout -------------------------------------------------------- */
+
+.auth-brand {
+  background: linear-gradient(160deg, #1d2739 0%, #101521 100%);
+  padding: 2.5rem;
+  min-width: 320px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.auth-form {
+  padding: 2.5rem;
+  flex: 1;
+}
+
+@media (max-width: 640px) {
+  .auth-brand {
+    display: none;
+  }
+}
+
+/* --- portfolio hero --------------------------------------------------------------- */
+
+.hero {
+  background: linear-gradient(135deg, #1a2332 0%, #101521 100%);
 }

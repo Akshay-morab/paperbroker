@@ -1,6 +1,6 @@
 import { FormEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Alert, Button, Card, Center, PasswordInput, Stack, Text, TextInput, Title } from '@mantine/core'
+import { Alert, Button, Card, Center, Group, PasswordInput, Stack, Text, TextInput, Title } from '@mantine/core'
 import { api } from '../api'
 
 export default function Login() {
@@ -31,53 +31,72 @@ export default function Login() {
 
   return (
     <Center mih="100vh" p="md">
-      <Card shadow="sm" padding="xl" radius="md" withBorder maw={400} w="100%">
-        <Title order={3}>PaperBroker</Title>
-        <Text c="dimmed" size="sm" mb="md">
-          A paper-trading broker with a discipline engine.
-        </Text>
-        <form onSubmit={submit}>
-          <Stack>
-            <TextInput
-              id="email"
-              label="Email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.currentTarget.value)}
-              required
-              autoFocus
-            />
-            <PasswordInput
-              id="password"
-              label="Password"
-              value={password}
-              onChange={(e) => setPassword(e.currentTarget.value)}
-              required
-              minLength={8}
-            />
-            {error && (
-              <Alert role="alert" color="red">
-                {error}
-              </Alert>
-            )}
-            <Button type="submit" loading={busy}>
-              {mode === 'login' ? 'Log in' : 'Create account'}
+      <Card radius="lg" withBorder shadow="md" maw={880} w="100%" p={0} style={{ overflow: 'hidden' }}>
+        <Group align="stretch" gap={0} wrap="nowrap">
+          {/* Branding panel — hides on small screens. */}
+          <div className="auth-brand">
+            <Title order={2}>PaperBroker</Title>
+            <Text c="dimmed" mt="xs">
+              A paper-trading broker with a discipline engine.
+            </Text>
+            <Stack gap={6} mt="xl">
+              <Text size="sm">◆ $100,000 simulated starting cash</Text>
+              <Text size="sm">◆ 22 instruments on a deterministic market</Text>
+              <Text size="sm">◆ Five guardrails enforce your rules</Text>
+              <Text size="sm">◆ Every flow verified by Kane CLI</Text>
+            </Stack>
+          </div>
+
+          {/* Form panel */}
+          <div className="auth-form">
+            <Title order={3}>{mode === 'login' ? 'Welcome back' : 'Create your account'}</Title>
+            <Text c="dimmed" size="sm" mb="md">
+              {mode === 'login' ? 'Log in to your paper account.' : 'Start with $100,000 in simulated cash.'}
+            </Text>
+            <form onSubmit={submit}>
+              <Stack>
+                <TextInput
+                  id="email"
+                  label="Email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.currentTarget.value)}
+                  required
+                  autoFocus
+                />
+                <PasswordInput
+                  id="password"
+                  label="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.currentTarget.value)}
+                  required
+                  minLength={8}
+                />
+                {error && (
+                  <Alert role="alert" color="red">
+                    {error}
+                  </Alert>
+                )}
+                <Button type="submit" loading={busy}>
+                  {mode === 'login' ? 'Log in' : 'Create account'}
+                </Button>
+              </Stack>
+            </form>
+            <Button
+              variant="subtle"
+              mt="xs"
+              onClick={() => {
+                setMode(mode === 'login' ? 'signup' : 'login')
+                setError('')
+              }}
+            >
+              {mode === 'login' ? 'Need an account? Sign up' : 'Have an account? Log in'}
             </Button>
-          </Stack>
-        </form>
-        <Button
-          variant="subtle"
-          mt="xs"
-          onClick={() => {
-            setMode(mode === 'login' ? 'signup' : 'login')
-            setError('')
-          }}
-        >
-          {mode === 'login' ? 'Need an account? Sign up' : 'Have an account? Log in'}
-        </Button>
-        <Text c="dimmed" size="xs" mt="md">
-          Demo personas: fresh@demo · tilted@demo · cooldown@demo — password demo1234
-        </Text>
+            <Text c="dimmed" size="xs" mt="md">
+              Demo personas: fresh@demo · tilted@demo · cooldown@demo — password demo1234
+            </Text>
+          </div>
+        </Group>
       </Card>
     </Center>
   )

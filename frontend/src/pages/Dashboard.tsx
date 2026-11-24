@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Anchor, Table, Text, Title } from '@mantine/core'
+import { Badge, Card, Group, SimpleGrid, Stack, Text, Title } from '@mantine/core'
 import Shell from '../components/Shell'
 import { api, Quote } from '../api'
 
@@ -28,37 +28,46 @@ export default function Dashboard() {
 
   return (
     <Shell>
-      <Title order={2} mb="md">Watchlist</Title>
-      <Table highlightOnHover>
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th>Symbol</Table.Th>
-            <Table.Th>Name</Table.Th>
-            <Table.Th>Price</Table.Th>
-            <Table.Th>Change</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {quotes.map((q) => (
-            <Table.Tr key={q.symbol}>
-              <Table.Td className="mono">
-                <Anchor component={Link} to={`/stocks/${q.symbol}`}>
+      <Group justify="space-between" mb="md">
+        <Title order={2}>Watchlist</Title>
+        <Text c="dimmed" size="xs">
+          {quotes.length} simulated instruments · prices tick every 3 seconds
+        </Text>
+      </Group>
+
+      <SimpleGrid cols={{ base: 2, xs: 3, md: 4, xl: 5 }} spacing="md">
+        {quotes.map((q) => (
+          // The whole card is the link — click anywhere on it to open the stock.
+          <Card
+            key={q.symbol}
+            component={Link}
+            to={`/stocks/${q.symbol}`}
+            radius="md"
+            withBorder
+            shadow="sm"
+            padding="lg"
+            className="stock-card"
+          >
+            <Stack gap={2}>
+              <Group justify="space-between" gap="xs">
+                <Text fw={700} fz="lg" className="mono">
                   {q.symbol}
-                </Anchor>
-              </Table.Td>
-              <Table.Td>{q.name}</Table.Td>
-              <Table.Td className="mono">{fmtMoney(q.price)}</Table.Td>
-              <Table.Td className="mono" c={q.change_pct >= 0 ? 'teal' : 'red'}>
-                {q.change_pct >= 0 ? '+' : ''}
-                {q.change_pct.toFixed(2)}%
-              </Table.Td>
-            </Table.Tr>
-          ))}
-        </Table.Tbody>
-      </Table>
-      <Text c="dimmed" size="xs" mt="sm">
-        Simulated market — prices tick every 3 seconds.
-      </Text>
+                </Text>
+                <Badge color={q.change_pct >= 0 ? 'teal' : 'red'} variant="light" size="sm">
+                  {q.change_pct >= 0 ? '+' : ''}
+                  {q.change_pct.toFixed(2)}%
+                </Badge>
+              </Group>
+              <Text c="dimmed" size="xs" lineClamp={1}>
+                {q.name}
+              </Text>
+              <Text fz="xl" fw={700} className="mono" mt="xs">
+                {fmtMoney(q.price)}
+              </Text>
+            </Stack>
+          </Card>
+        ))}
+      </SimpleGrid>
     </Shell>
   )
 }
