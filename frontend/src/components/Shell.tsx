@@ -1,34 +1,52 @@
 import { ReactNode, useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Alert, Anchor, AppShell, Button, Group, Text, Tooltip } from '@mantine/core'
+import {
+  Anchor,
+  AppShell,
+  Button,
+  Group,
+  Menu,
+  Modal,
+  Stack,
+  Text,
+  Tooltip,
+} from '@mantine/core'
 import {
   IconBriefcase,
   IconChartCandle,
+  IconId,
+  IconInfoCircle,
+  IconLogout,
   IconReceipt2,
   IconShield,
+  IconStar,
+  IconUser,
 } from '@tabler/icons-react'
-import { api, Profile } from '../api'
+import { api, PortfolioData, Profile } from '../api'
 
 const fmtMoney = (n: number) =>
   '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 const NAV = [
-  { to: '/', label: 'Watchlist', icon: IconChartCandle, tip: 'Your watchlist of shares' },
+  { to: '/', label: 'All Shares', icon: IconChartCandle, tip: 'All shares on the market' },
+  { to: '/watchlist', label: 'Watchlist', icon: IconStar, tip: 'Your starred shares' },
   { to: '/portfolio', label: 'Portfolio', icon: IconBriefcase, tip: 'Your holdings and net worth' },
   { to: '/orders', label: 'Orders', icon: IconReceipt2, tip: 'Your full order history' },
   { to: '/discipline', label: 'Discipline', icon: IconShield, tip: 'Your trading guardrails' },
 ]
 
 /**
- * The app shell: header with nav, signed-in identity, cash, and logout.
- * Kane-asserted text lives here and must stay byte-exact:
- *   "Signed in as <email>", "Cash: $100,000.00", "Log out".
+ * The app shell: boxed nav pills with tooltips, a clickable brand (About popup),
+ * and the corner Profile menu (User Profile Details / Log out).
  */
 export default function Shell({ children }: { children: ReactNode }) {
   const nav = useNavigate()
   const loc = useLocation()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [authFailed, setAuthFailed] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
+  const [aboutOpen, setAboutOpen] = useState(false)
+  const [folio, setFolio] = useState<PortfolioData | null>(null)
 
   useEffect(() => {
     let alive = true
@@ -48,6 +66,13 @@ export default function Shell({ children }: { children: ReactNode }) {
     if (authFailed) nav('/login')
   }, [authFailed, nav])
 
+  useEffect(() => {
+    if (!profileOpen) return
+    api<PortfolioData>('/api/portfolio')
+      .then(setFolio)
+      .catch(() => {})
+  }, [profileOpen])
+
   const logout = async () => {
     try {
       await api('/api/auth/logout', { method: 'POST' })
@@ -60,9 +85,17 @@ export default function Shell({ children }: { children: ReactNode }) {
   return (
     <AppShell header={{ height: 60 }} padding="md">
       <AppShell.Header>
-        <Group h="100%" px="md" justify="space-between" wrap="nowrap">
+        <Group h="100%" px="md" justify="space-between">
           <Group gap="lg">
-            <Text fw={700} fz="lg">PaperBroker</Text>
+            <Text
+              fw={700}
+              fz="lg"
+              className="brand"
+              onClick={() => setAboutOpen(true)}
+              title="What is PaperBroker?"
+            >
+              PaperBroker
+            </Text>
             {NAV.map((item) => (
               <Tooltip key={item.to} label={item.tip} position="bottom" withArrow openDelay={200}>
                 <Anchor
@@ -76,25 +109,82 @@ export default function Shell({ children }: { children: ReactNode }) {
               </Tooltip>
             ))}
           </Group>
-          <Group gap="md" wrap="nowrap">
-            {profile && (
-              <>
-                <Text size="sm" c="dimmed" visibleFrom="xs">
-                  Signed in as {profile.email}
-                </Text>
-                <Text size="sm">
-                  Cash: <strong>{fmtMoney(profile.cash)}</strong>
-                </Text>
-              </>
-            )}
-            <Button variant="subtle" size="xs" onClick={logout}>
-              Log out
-            </Button>
-          </Group>
+
+          {/* Corner profile tab: two options only (user feedback, Nov 25). */}
+          <Menu shadow="md" width={230} position="bottom-end">
+            <Menu.Target>
+              <Button variant="subtle" size="xs" leftSection={<IconUser size={15} />}>
+                Profile
+              </Button>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Menu.Item
+                leftSection={<IconId size={14} />}
+                onClick={() => setProfileOpen(true)}
+              >
+                User Profile Details
+              </Menu.Item>
+              <Menu.Divider />
+              <Menu.Item color="red" leftSection={<IconLogout size={14} />} onClick={logout}>
+                Log out
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
         </Group>
       </AppShell.Header>
 
       <AppShell.Main>{children}</AppShell.Main>
+
+      <Modal
+        opened={aboutOpen}
+        onClose={() => setAboutOpen(false)}
+        centered
+        radius="lg"
+        title={
+          <Group gap="xs">
+            <IconInfoCircle size={18} />
+            <span>About PaperBroker</span>
+          </Group>
+        }
+      >
+        <Text size="sm" mb="xs">
+          PaperBroker is an app used for trading — a simulated stock broker where you buy and
+          sell shares with $100,000 of practice money.
+        </Text>
+        <Text size="sm" c="dimmed">
+          A discipline engine enforces your trading rules, and every flow is verified
+          end-to-end by Kane CLI in a real browser.
+        </Text>
+      </Modal>
+
+      <Modal
+        opened={profileOpen}
+        onClose={() => setProfileOpen(false)}
+        centered
+        radius="lg"
+        title="User Profile Details"
+      >
+        {profile && (
+          <Stack gap="xs">
+            <Text size="sm">
+              Email: <strong>{profile.email}</strong>
+            </Text>
+            <Text size="sm">
+              Cash: <strong>{fmtMoney(profile.cash)}</strong>
+            </Text>
+            {folio && (
+              <>
+                <Text size="sm">
+                  Net worth: <strong>{fmtMoney(folio.equity)}</strong>
+                </Text>
+                <Text size="sm">
+                  Open positions: <strong>{folio.positions.length}</strong>
+                </Text>
+              </>
+            )}
+          </Stack>
+        )}
+      </Modal>
     </AppShell>
   )
 }

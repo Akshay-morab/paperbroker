@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { MouseEvent, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
+  ActionIcon,
   Alert,
   Badge,
   Button,
@@ -10,10 +11,11 @@ import {
   NumberInput,
   SimpleGrid,
   Stack,
+  Tabs,
   Text,
   Title,
 } from '@mantine/core'
-import { IconCircleCheck } from '@tabler/icons-react'
+import { IconCircleCheck, IconStar, IconStarFilled } from '@tabler/icons-react'
 import { createChart, IChartApi, UTCTimestamp } from 'lightweight-charts'
 import Shell from '../components/Shell'
 import { api, ApiError, Candle, Financial, PlacedOrder, Quote, StockDetailData } from '../api'
@@ -38,7 +40,7 @@ const RANGES: { label: string; days: number; step?: number }[] = [
   { label: '5Y', days: 1826, step: 7 },
 ]
 
-/** Candlestick chart with the range buttons (1D intraday; daily bars for the rest). */
+/** Candlestick chart with the range buttons. */
 function RangeChart({ detail, range }: { detail: StockDetailData; range: string }) {
   const holder = useRef<HTMLDivElement>(null)
 
@@ -111,7 +113,7 @@ function WeekRangeBar({ low, high, price }: { low: number; high: number; price: 
   )
 }
 
-/** 5-year financials: revenue vs net profit bars (hand-rolled SVG — no extra deps). */
+/** 5-year financials: revenue vs net profit bars. */
 function FinancialBars({ rows }: { rows: Financial[] }) {
   if (rows.length === 0) return null
   const max = Math.max(...rows.flatMap((r) => [r.revenue, Math.abs(r.net_profit)])) || 1
@@ -148,11 +150,63 @@ function FinancialBars({ rows }: { rows: Financial[] }) {
   )
 }
 
+/** Simulated headlines: 18 templates, the company name swapped in, a random
+ * four picked on every visit so the feed keeps changing (user feedback, Nov 25). */
+const NEWS_TEMPLATES = [
+  '{company} beats quarterly estimates as {sector} demand surges',
+  'Analysts raise their price target on {company} after strong guidance',
+  '{company} announces an expanded share buyback program',
+  '{sector} stocks rally as rates ease — {company} leads the gains',
+  '{company} unveils a new product line to warm reviews',
+  'Insiders purchase {company} shares, filings show',
+  '{company} reports earnings next week; expectations are high',
+  'Regulators open a routine review into {sector} practices; {company} unaffected',
+  '{company} expands into two new markets',
+  'Fund managers trim {sector} exposure but keep {company} overweight',
+  'Supply chain running at full capacity, {company} executives say',
+  'Short interest in {company} falls to a yearly low',
+  '{company} tops a customer satisfaction survey in {sector}',
+  'Buy-side note: {company} valuation "reasonable for the quality"',
+  '{company} renews a key partnership for three more years',
+  'After-hours: {company} ticks up on light volume',
+  "{company}'s CFO to speak at the {sector} summit next month",
+  'Retail flows into {company} hit a multi-week high',
+]
+
+function News({ company, sector }: { company: string; sector?: string }) {
+  const [items] = useState(() =>
+    [...NEWS_TEMPLATES]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 4)
+      .map((t, i) => ({
+        text: t
+          .replaceAll('{company}', company)
+          .replaceAll('{sector}', sector ?? 'the market'),
+        ago: `${8 + i * 23}m ago`,
+      }))
+  )
+
+  return (
+    <Stack gap="xs">
+      {items.map((n, i) => (
+        <Group key={i} gap="sm" align="flex-start" className="news-item">
+          <span className="news-bullet" />
+          <div>
+            <Text size="sm">{n.text}</Text>
+            <Text size="xs" c="dimmed">{n.ago} · simulated headline</Text>
+          </div>
+        </Group>
+      ))}
+    </Stack>
+  )
+}
+
 export default function StockDetail() {
   const { symbol = '' } = useParams()
   const [detail, setDetail] = useState<StockDetailData | null>(null)
   const [notFound, setNotFound] = useState(false)
   const [range, setRange] = useState('1D')
+  const [starred, setStarred] = useState(false)
   const [buyQty, setBuyQty] = useState('10')
   const [sellQty, setSellQty] = useState('10')
   const [toast, setToast] = useState('') // "Order filled" — Kane asserts this text
@@ -173,6 +227,11 @@ export default function StockDetail() {
           if (alive && e instanceof ApiError && e.status === 404) setNotFound(true)
         })
     load()
+    api<Quote[]>('/api/watchlist')
+      .then((w) => {
+        if (alive) setStarred(w.some((q) => q.symbol === symbol.toUpperCase()))
+      })
+      .catch(() => {})
     const id = setInterval(load, 5000)
     return () => {
       alive = false
@@ -180,7 +239,6 @@ export default function StockDetail() {
     }
   }, [symbol])
 
-  // "Order filled" confirmation stays visible 4s (assertable), the popup ~2s.
   useEffect(() => {
     if (!toast) return
     const id = setTimeout(() => setToast(''), 4000)
@@ -192,6 +250,16 @@ export default function StockDetail() {
     const id = setTimeout(() => setPurchase(''), 2000)
     return () => clearTimeout(id)
   }, [purchase])
+
+  const toggleStar = async (_e: MouseEvent) => {
+    if (starred) {
+      await api(`/api/watchlist/${symbol}`, { method: 'DELETE' }).catch(() => {})
+      setStarred(false)
+    } else {
+      await api(`/api/watchlist/${symbol}`, { method: 'POST' }).catch(() => {})
+      setStarred(true)
+    }
+  }
 
   async function placeOrder(side: 'buy' | 'sell', qtyStr: string) {
     setBusy(true)
@@ -211,7 +279,6 @@ export default function StockDetail() {
       if (side === 'buy') setBuyQty('10')
       else setSellQty('10')
     } catch (err) {
-      // Rejected/blocked reasons render verbatim (DESIGN.md §3.4).
       if (err instanceof ApiError) setBanner(err.detail)
     } finally {
       setBusy(false)
@@ -236,11 +303,22 @@ export default function StockDetail() {
   return (
     <Shell>
       <Stack gap="md">
-        {/* Header */}
+        {/* Header + star */}
         <Stack gap={0}>
-          <Title order={2}>
-            <span className="mono">{detail?.symbol ?? symbol}</span> — {detail?.name ?? '…'}
-          </Title>
+          <Group justify="space-between" wrap="nowrap">
+            <Title order={2}>
+              <span className="mono">{detail?.symbol ?? symbol}</span> — {detail?.name ?? '…'}
+            </Title>
+            <ActionIcon
+              variant={starred ? 'filled' : 'subtle'}
+              color="indigo"
+              radius="md"
+              title={starred ? 'Remove from watchlist' : 'Add to watchlist'}
+              onClick={toggleStar}
+            >
+              {starred ? <IconStarFilled size={16} /> : <IconStar size={16} />}
+            </ActionIcon>
+          </Group>
           {detail && (
             <Text fz="xl" fw={700} className="mono" c={detail.change_pct >= 0 ? 'teal' : 'red'}>
               {fmtMoney(detail.price)} ({detail.change_pct >= 0 ? '+' : ''}
@@ -270,79 +348,102 @@ export default function StockDetail() {
           )}
         </Card>
 
-        {/* Fundamentals */}
-        {profile && (
-          <>
-            <SimpleGrid cols={{ base: 2, xs: 4 }} spacing="md">
-              <Card radius="md" withBorder padding="md">
-                <Text c="dimmed" size="xs" tt="uppercase">P/E ratio</Text>
-                <Text fz="xl" fw={700} className="mono">{detail?.pe ?? '—'}</Text>
-              </Card>
-              <Card radius="md" withBorder padding="md">
-                <Text c="dimmed" size="xs" tt="uppercase">Market cap</Text>
-                <Text fz="xl" fw={700} className="mono">{fmtMarketCap(detail?.market_cap ?? null)}</Text>
-              </Card>
-              <Card radius="md" withBorder padding="md">
-                <Text c="dimmed" size="xs" tt="uppercase">EPS</Text>
-                <Text fz="xl" fw={700} className="mono">${profile.eps.toFixed(2)}</Text>
-              </Card>
-              <Card radius="md" withBorder padding="md">
-                <Text c="dimmed" size="xs" tt="uppercase" mb="xs">52-week range</Text>
-                <WeekRangeBar
-                  low={profile.fifty_two_week_low}
-                  high={profile.fifty_two_week_high}
-                  price={price}
-                />
-              </Card>
-            </SimpleGrid>
+        {/* Research tabs — everything collapsible so the page stays short. */}
+        <Tabs defaultValue="fundamentals">
+          <Tabs.List>
+            <Tabs.Tab value="fundamentals">Fundamentals</Tabs.Tab>
+            <Tabs.Tab value="financials">Financials</Tabs.Tab>
+            <Tabs.Tab value="news">News</Tabs.Tab>
+            <Tabs.Tab value="similar">Similar</Tabs.Tab>
+          </Tabs.List>
 
-            <Card radius="md" withBorder padding="md">
-              <Group gap="sm" mb="xs">
-                <Badge variant="light" color="indigo">{profile.sector}</Badge>
-                {profile.founded_year && (
-                  <Text c="dimmed" size="xs">Founded {profile.founded_year}</Text>
-                )}
-              </Group>
-              <Text size="sm">{profile.description}</Text>
-            </Card>
+          <Tabs.Panel value="fundamentals" pt="sm">
+            {profile ? (
+              <Stack gap="md">
+                <SimpleGrid cols={{ base: 2, xs: 4 }} spacing="md">
+                  <Card radius="md" withBorder padding="md">
+                    <Text c="dimmed" size="xs" tt="uppercase">P/E ratio</Text>
+                    <Text fz="xl" fw={700} className="mono">{detail?.pe ?? '—'}</Text>
+                  </Card>
+                  <Card radius="md" withBorder padding="md">
+                    <Text c="dimmed" size="xs" tt="uppercase">Market cap</Text>
+                    <Text fz="xl" fw={700} className="mono">{fmtMarketCap(detail?.market_cap ?? null)}</Text>
+                  </Card>
+                  <Card radius="md" withBorder padding="md">
+                    <Text c="dimmed" size="xs" tt="uppercase">EPS</Text>
+                    <Text fz="xl" fw={700} className="mono">${profile.eps.toFixed(2)}</Text>
+                  </Card>
+                  <Card radius="md" withBorder padding="md">
+                    <Text c="dimmed" size="xs" tt="uppercase" mb="xs">52-week range</Text>
+                    <WeekRangeBar
+                      low={profile.fifty_two_week_low}
+                      high={profile.fifty_two_week_high}
+                      price={price}
+                    />
+                  </Card>
+                </SimpleGrid>
+                <Card radius="md" withBorder padding="md">
+                  <Group gap="sm" mb="xs">
+                    <Badge variant="light" color="indigo">{profile.sector}</Badge>
+                    {profile.founded_year && (
+                      <Text c="dimmed" size="xs">Founded {profile.founded_year}</Text>
+                    )}
+                  </Group>
+                  <Text size="sm">{profile.description}</Text>
+                </Card>
+              </Stack>
+            ) : (
+              <Text c="dimmed" size="sm">No profile data for this symbol.</Text>
+            )}
+          </Tabs.Panel>
 
-            {/* 5-year financials */}
+          <Tabs.Panel value="financials" pt="sm">
             <Card radius="md" withBorder padding="md">
               <Title order={5} mb="xs">Financials — 5 years</Title>
               <FinancialBars rows={detail?.financials ?? []} />
             </Card>
-          </>
-        )}
+          </Tabs.Panel>
 
-        {/* Similar stocks (same sector) */}
-        {detail && detail.similar.length > 0 && (
-          <div>
-            <Title order={4} mb="xs">Similar stocks</Title>
-            <SimpleGrid cols={{ base: 2, xs: 4 }} spacing="sm">
-              {detail.similar.map((s: Quote) => (
-                <Card
-                  key={s.symbol}
-                  component={Link}
-                  to={`/stocks/${s.symbol}`}
-                  radius="md"
-                  withBorder
-                  padding="sm"
-                  className="stock-card"
-                >
-                  <Group justify="space-between" mb={2}>
-                    <Text fw={700} className="mono">{s.symbol}</Text>
-                    <Text size="xs" c={s.change_pct >= 0 ? 'teal' : 'red'}>
-                      {s.change_pct >= 0 ? '+' : ''}{s.change_pct.toFixed(2)}%
-                    </Text>
-                  </Group>
-                  <Text className="mono" size="sm">{fmtMoney(s.price)}</Text>
-                </Card>
-              ))}
-            </SimpleGrid>
-          </div>
-        )}
+          <Tabs.Panel value="news" pt="sm">
+            <Card radius="md" withBorder padding="md">
+              <Title order={5} mb="xs">Latest news</Title>
+              <News
+                company={detail?.name ?? symbol}
+                sector={profile?.sector}
+              />
+            </Card>
+          </Tabs.Panel>
 
-        {/* Trade — two fully separated cards */}
+          <Tabs.Panel value="similar" pt="sm">
+            {detail && detail.similar.length > 0 ? (
+              <SimpleGrid cols={{ base: 2, xs: 4 }} spacing="sm">
+                {detail.similar.map((s: Quote) => (
+                  <Card
+                    key={s.symbol}
+                    component={Link}
+                    to={`/stocks/${s.symbol}`}
+                    radius="md"
+                    withBorder
+                    padding="sm"
+                    className="stock-card"
+                  >
+                    <Group justify="space-between" mb={2}>
+                      <Text fw={700} className="mono">{s.symbol}</Text>
+                      <Text size="xs" c={s.change_pct >= 0 ? 'teal' : 'red'}>
+                        {s.change_pct >= 0 ? '+' : ''}{s.change_pct.toFixed(2)}%
+                      </Text>
+                    </Group>
+                    <Text className="mono" size="sm">{fmtMoney(s.price)}</Text>
+                  </Card>
+                ))}
+              </SimpleGrid>
+            ) : (
+              <Text c="dimmed" size="sm">No similar shares found.</Text>
+            )}
+          </Tabs.Panel>
+        </Tabs>
+
+        {/* Trade — two fully separated cards at the bottom. */}
         <div>
           <Title order={4} mb="xs">Trade</Title>
           <SimpleGrid cols={{ base: 1, xs: 2 }} spacing="md">
@@ -402,7 +503,6 @@ export default function StockDetail() {
           </SimpleGrid>
         </div>
 
-        {/* Confirmations: assertable alert (4s) + popup (2s) */}
         {toast && (
           <Alert role="status" color="teal" maw={520}>
             {toast}

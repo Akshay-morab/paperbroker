@@ -126,3 +126,31 @@
 .order-row:hover {
   border-color: #4c6ef5;
 }
+
+/* --- brand + news ------------------------------------------------------------------------------ */
+
+.brand {
+  cursor: pointer;
+}
+
+.brand:hover {
+  color: #7fa3f5;
+}
+
+.news-item {
+  padding: 4px 0;
+  border-bottom: 1px solid #232a36;
+}
+
+.news-item:last-child {
+  border-bottom: none;
+}
+
+.news-bullet {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4c6ef5;
+  margin-top: 6px;
+  flex-shrink: 0;
+}
