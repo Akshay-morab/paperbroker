@@ -18,6 +18,7 @@ import {
 import { IconCircleCheck, IconStar, IconStarFilled } from '@tabler/icons-react'
 import { createChart, IChartApi, UTCTimestamp } from 'lightweight-charts'
 import Shell from '../components/Shell'
+import SymbolAvatar from '../components/SymbolAvatar'
 import { api, ApiError, Candle, Financial, PlacedOrder, Quote, StockDetailData } from '../api'
 
 const fmtMoney = (n: number) =>
@@ -43,6 +44,7 @@ const RANGES: { label: string; days: number; step?: number }[] = [
 /** Candlestick chart with the range buttons. */
 function RangeChart({ detail, range }: { detail: StockDetailData; range: string }) {
   const holder = useRef<HTMLDivElement>(null)
+  const [hover, setHover] = useState<{ o: number; h: number; l: number; c: number } | null>(null)
 
   useEffect(() => {
     if (!holder.current) return
@@ -83,6 +85,18 @@ function RangeChart({ detail, range }: { detail: StockDetailData; range: string 
     )
     chart.timeScale().fitContent()
 
+    // Hover chip: the hovered candle's OHLC, as a popup over the chart.
+    chart.subscribeCrosshairMove((param) => {
+      const point = param.seriesData.get(series) as
+        | { open: number; high: number; low: number; close: number }
+        | undefined
+      setHover(
+        point
+          ? { o: point.open, h: point.high, l: point.low, c: point.close }
+          : null
+      )
+    })
+
     const ro = new ResizeObserver(() => {
       if (holder.current) chart.applyOptions({ width: holder.current.clientWidth })
     })
@@ -93,7 +107,19 @@ function RangeChart({ detail, range }: { detail: StockDetailData; range: string 
     }
   }, [detail, range])
 
-  return <div ref={holder} style={{ width: '100%' }} />
+  return (
+    <div style={{ position: 'relative' }}>
+      <div ref={holder} style={{ width: '100%' }} />
+      {hover && (
+        <div className="chart-hover">
+          <span>O <b>{hover.o.toFixed(2)}</b></span>
+          <span>H <b>{hover.h.toFixed(2)}</b></span>
+          <span>L <b>{hover.l.toFixed(2)}</b></span>
+          <span>C <b>{hover.c.toFixed(2)}</b></span>
+        </div>
+      )}
+    </div>
+  )
 }
 
 /** 52-week range bar with the current price marker. */
@@ -213,6 +239,11 @@ export default function StockDetail() {
   const [banner, setBanner] = useState('')
   const [purchase, setPurchase] = useState('') // the popup text
   const [busy, setBusy] = useState(false)
+  const tradeRef = useRef<HTMLDivElement>(null)
+
+  // Sticky Buy/Sell bar: always visible, jumps to the trade cards (user feedback, Nov 25).
+  const scrollToTrade = () =>
+    tradeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
   useEffect(() => {
     let alive = true
@@ -302,13 +333,26 @@ export default function StockDetail() {
 
   return (
     <Shell>
+      {/* Sticky trade bar — visible while scrolling through research content. */}
+      <div className="trade-fab">
+        <Button color="teal" variant="light" size="sm" onClick={scrollToTrade}>
+          Buy
+        </Button>
+        <Button color="red" variant="light" size="sm" onClick={scrollToTrade}>
+          Sell
+        </Button>
+      </div>
+
       <Stack gap="md">
         {/* Header + star */}
         <Stack gap={0}>
           <Group justify="space-between" wrap="nowrap">
-            <Title order={2}>
-              <span className="mono">{detail?.symbol ?? symbol}</span> — {detail?.name ?? '…'}
-            </Title>
+            <Group gap="sm" wrap="nowrap">
+              <SymbolAvatar symbol={detail?.symbol ?? symbol} size={38} />
+              <Title order={2}>
+                <span className="mono">{detail?.symbol ?? symbol}</span> — {detail?.name ?? '…'}
+              </Title>
+            </Group>
             <ActionIcon
               variant={starred ? 'filled' : 'subtle'}
               color="indigo"
@@ -388,6 +432,9 @@ export default function StockDetail() {
                     {profile.founded_year && (
                       <Text c="dimmed" size="xs">Founded {profile.founded_year}</Text>
                     )}
+                    <Text c="dimmed" size="xs">
+                      Dividend yield: {profile.dividend_yield.toFixed(2)}% annually
+                    </Text>
                   </Group>
                   <Text size="sm">{profile.description}</Text>
                 </Card>
@@ -444,7 +491,7 @@ export default function StockDetail() {
         </Tabs>
 
         {/* Trade — two fully separated cards at the bottom. */}
-        <div>
+        <div ref={tradeRef}>
           <Title order={4} mb="xs">Trade</Title>
           <SimpleGrid cols={{ base: 1, xs: 2 }} spacing="md">
             <Card radius="md" withBorder padding="lg" className="trade-card trade-buy">

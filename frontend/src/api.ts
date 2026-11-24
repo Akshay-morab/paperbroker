@@ -62,6 +62,7 @@ export type StockProfile = {
   sector: string
   eps: number
   shares_outstanding: number
+  dividend_yield: number
   fifty_two_week_high: number
   fifty_two_week_low: number
   founded_year: number | null
@@ -101,7 +102,15 @@ export type Position = {
   unrealized_pnl: number
 }
 
-export type PortfolioData = { cash: number; equity: number; positions: Position[] }
+export type PortfolioData = {
+  cash: number
+  equity: number
+  positions: Position[]
+  starting_cash: number
+  pnl: number
+  pnl_pct: number
+  dividends_earned: number
+}
 
 export type GuardrailStatus = {
   locked: boolean

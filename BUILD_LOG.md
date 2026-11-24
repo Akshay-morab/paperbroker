@@ -65,3 +65,11 @@ The daily ritual (DESIGN.md §8.3): one entry per day — what worked, what bit,
   simulated headlines: 18 templates, company name swapped, 4 random per visit. 34/34 pytest
   (new watchlist round-trip test). All 8 Kane flows reworded for the Profile-menu logout and
   profile-modal assertions. THIS IS THE FEATURE FREEZE.
+- **Wed Nov 25 (truly final) — orders modal, sticky trade bar, hover chip, avatars, P&L,
+  dividends:** order rows open a details modal (shares/price/total/status/success line);
+  a floating Buy/Sell bar follows the stock page and smooth-scrolls to the trade cards;
+  the chart shows an OHLC hover chip; deterministic letter avatars per symbol; the hero
+  gains P&L % vs starting cash and Dividends earned — backed by a real dividends loop
+  (1 real minute = 1 simulated quarter, credited as genuine ledger rows; yields seeded
+  per stock). ensure_schema() added because SQLite create_all never ALTERs — the
+  dividend_yield column landed on the shipped DB without data loss. 36/36 pytest.

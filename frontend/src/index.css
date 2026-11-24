@@ -154,3 +154,63 @@
   margin-top: 6px;
   flex-shrink: 0;
 }
+
+/* --- symbol avatars ------------------------------------------------------------------------------ */
+
+.sym-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+/* --- sticky trade bar + chart hover chip ----------------------------------------------------------- */
+
+.trade-fab {
+  position: fixed;
+  bottom: 18px;
+  right: 18px;
+  display: flex;
+  gap: 8px;
+  z-index: 200;
+  padding: 8px;
+  border-radius: 12px;
+  background: rgba(16, 21, 33, 0.9);
+  border: 1px solid #2a3344;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+}
+
+.chart-hover {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  display: flex;
+  gap: 10px;
+  background: #161b24;
+  border: 1px solid #2a3344;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: #aab3c5;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.chart-hover b {
+  color: #fff;
+  font-family: ui-monospace, Consolas, monospace;
+}
+
+/* --- order rows clickable --------------------------------------------------------------------------- */
+
+.order-row {
+  transition: border-color 0.15s ease;
+  cursor: pointer;
+}
+
+.order-row:hover {
+  border-color: #4c6ef5;
+}

@@ -2,6 +2,7 @@ import { MouseEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { ActionIcon, Badge, Card, Group, Stack, Text } from '@mantine/core'
 import { IconStar, IconStarFilled } from '@tabler/icons-react'
+import SymbolAvatar from './SymbolAvatar'
 import { Quote } from '../api'
 
 const fmtMoney = (n: number) =>
@@ -30,9 +31,12 @@ export default function StockCard({
     >
       <Stack gap={2}>
         <Group justify="space-between" gap="xs" wrap="nowrap">
-          <Text fw={700} fz="lg" className="mono">
-            {quote.symbol}
-          </Text>
+          <Group gap="xs" wrap="nowrap">
+            <SymbolAvatar symbol={quote.symbol} size={30} />
+            <Text fw={700} fz="lg" className="mono">
+              {quote.symbol}
+            </Text>
+          </Group>
           <ActionIcon
             variant={starred ? 'filled' : 'subtle'}
             color="indigo"

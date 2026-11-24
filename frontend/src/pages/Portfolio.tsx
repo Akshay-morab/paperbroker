@@ -46,6 +46,29 @@ export default function Portfolio() {
             </Text>
           </div>
         </Group>
+        {data && (
+          <Group gap="xl" mt="sm">
+            <div>
+              <Text c="dimmed" size="xs">P&L</Text>
+              <Text
+                fz="lg"
+                fw={600}
+                className="mono"
+                c={data.pnl >= 0 ? 'teal' : 'red'}
+              >
+                {data.pnl >= 0 ? '+' : ''}
+                {fmtMoney(data.pnl)} ({data.pnl_pct >= 0 ? '+' : ''}
+                {data.pnl_pct.toFixed(2)}%)
+              </Text>
+            </div>
+            <div>
+              <Text c="dimmed" size="xs">Dividends earned</Text>
+              <Text fz="lg" fw={600} className="mono" c="teal">
+                {fmtMoney(data.dividends_earned)}
+              </Text>
+            </div>
+          </Group>
+        )}
       </Card>
 
       <Text fz="lg" fw={600} mb="xs">Positions</Text>
