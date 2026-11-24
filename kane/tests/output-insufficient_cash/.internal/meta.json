@@ -1,0 +1,18 @@
+{
+  "test_id": "085ff14d-9038-41d2-a5f8-80df3ba29674",
+  "project_id": "01M87BAPXSJASXZ2N6J686YV5B",
+  "folder_id": "01M87BARANH8MJFZHEGR5CQ3PH",
+  "org_id": "3450718",
+  "session_name": "insufficient_cash",
+  "commit_id": "2c380ae8-bbc2-41cc-964d-de721435845b",
+  "testcase_id": "01M87K0E254C5QYMPGDVHAK49H",
+  "executions": [
+    {
+      "execution_id": "ca147c2c-bbf2-425b-b00a-fe85d53361e0",
+      "run_kind": "author",
+      "status": "passed",
+      "valid": true,
+      "at": "2026-11-24T20:16:17.102Z"
+    }
+  ]
+}
