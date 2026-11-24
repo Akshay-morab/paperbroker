@@ -13,6 +13,9 @@ CANDLE_HISTORY = 120
 LONG_DAYS = 1826  # ~5 years of daily candles for the chart range buttons
 TICK_SECONDS = 3.0
 MIN_PRICE = 0.01
+MEAN_REVERSION = 0.002  # gentle pull toward base price (found live by Kane, Nov 26:
+                         # a pure random walk drifted TSLA +265% in ~20h of uptime, which
+                         # silently disarmed the tilted persona's kill-switch demo)
 
 
 @dataclass
@@ -20,6 +23,7 @@ class SymbolState:
     symbol: str
     name: str
     volatility: float
+    base_price: float
     price: float
     session_open: float
     live_rng: random.Random
@@ -81,6 +85,7 @@ class PriceEngine:
             symbol=row.symbol.upper(),
             name=row.name,
             volatility=row.volatility,
+            base_price=row.base_price,
             price=round(price, 2),
             session_open=round(session_open, 2),
             live_rng=random.Random(row.seed),
@@ -100,7 +105,12 @@ class PriceEngine:
     def tick(self) -> None:
         for state in self._state.values():
             drift = state.live_rng.gauss(0, 1)
-            state.price = round(max(state.price * (1 + state.volatility * drift), MIN_PRICE), 2)
+            # Random walk + gentle mean reversion: prices stay lively short-term
+            # but anchored near base over hours/days of uptime.
+            reversion = MEAN_REVERSION * (state.base_price / state.price - 1)
+            state.price = round(
+                max(state.price * (1 + state.volatility * drift + reversion), MIN_PRICE), 2
+            )
 
     async def tick_loop(self) -> None:
         while True:
