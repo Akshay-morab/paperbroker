@@ -35,6 +35,20 @@ INSTRUMENTS = [
     {"symbol": "META", "name": "Meta Platforms", "base_price": 585.0, "volatility": 0.028, "seed": 606},
     {"symbol": "NFLX", "name": "Netflix Inc.", "base_price": 900.0, "volatility": 0.03, "seed": 707},
     {"symbol": "TSLA", "name": "Tesla Inc.", "base_price": 340.0, "volatility": 0.03, "seed": 808},
+    {"symbol": "AMD", "name": "Advanced Micro Devices", "base_price": 165.0, "volatility": 0.032, "seed": 909},
+    {"symbol": "INTC", "name": "Intel Corp.", "base_price": 42.0, "volatility": 0.028, "seed": 1010},
+    {"symbol": "JPM", "name": "JPMorgan Chase & Co.", "base_price": 240.0, "volatility": 0.018, "seed": 1111},
+    {"symbol": "V", "name": "Visa Inc.", "base_price": 310.0, "volatility": 0.015, "seed": 1212},
+    {"symbol": "WMT", "name": "Walmart Inc.", "base_price": 92.0, "volatility": 0.015, "seed": 1313},
+    {"symbol": "DIS", "name": "The Walt Disney Co.", "base_price": 110.0, "volatility": 0.022, "seed": 1414},
+    {"symbol": "BA", "name": "The Boeing Co.", "base_price": 155.0, "volatility": 0.026, "seed": 1515},
+    {"symbol": "NKE", "name": "Nike Inc.", "base_price": 78.0, "volatility": 0.02, "seed": 1616},
+    {"symbol": "KO", "name": "The Coca-Cola Co.", "base_price": 63.0, "volatility": 0.012, "seed": 1717},
+    {"symbol": "PEP", "name": "PepsiCo Inc.", "base_price": 70.0, "volatility": 0.012, "seed": 1818},
+    {"symbol": "XOM", "name": "Exxon Mobil Corp.", "base_price": 118.0, "volatility": 0.02, "seed": 1919},
+    {"symbol": "ORCL", "name": "Oracle Corp.", "base_price": 185.0, "volatility": 0.02, "seed": 2020},
+    {"symbol": "CRM", "name": "Salesforce Inc.", "base_price": 330.0, "volatility": 0.024, "seed": 2121},
+    {"symbol": "UBER", "name": "Uber Technologies", "base_price": 72.0, "volatility": 0.03, "seed": 2222},
 ]
 
 

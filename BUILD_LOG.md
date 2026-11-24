@@ -42,3 +42,9 @@ The daily ritual (DESIGN.md §8.3): one entry per day — what worked, what bit,
   tables, card-based order ticket with a segmented Buy/Sell control, status badges on orders,
   grid of discipline cards. Every Kane-asserted string preserved byte-exact; backend untouched
   (32/32 still stands). TS clean; 101 kB gzip.
+- **Wed Nov 25 — UI overhaul round 2 (user feedback):** watchlist is now a grid of large
+  clickable stock cards (whole card = the link), real candlestick charts (lightweight-charts),
+  direct Buy/Sell buttons replacing the toggle, a 4-second "Order filled" toast with fill
+  details, a net-worth hero on Portfolio, a split branding login page, and 22 instruments
+  (up from 8). Flow texts updated to match the new interactions — old-UI recordings are
+  invalidated by design; the suite re-authors and that IS the loop story for the video.
