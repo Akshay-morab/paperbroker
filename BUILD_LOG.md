@@ -57,3 +57,11 @@ The daily ritual (DESIGN.md §8.3): one entry per day — what worked, what bit,
   panic dumps landed on yesterday, caught instantly by the guardrail tests; fixed with
   same-day clamping in the seed (33/33 green). Scope frozen after this pass: suite, EC2,
   video.
+- **Wed Nov 25 (final round) — watchlist + profile + tabs:** per-user watchlist
+  (watchlist_items + star toggles on every card; All Shares vs Watchlist pages), corner
+  Profile menu (User Profile Details modal w/ email/cash/net worth; Log out), "Signed in as"
+  + cash removed from the header per feedback, clickable brand → About popup, research
+  sections collapsed into tabs (Fundamentals/Financials/News/Similar — page is short again),
+  simulated headlines: 18 templates, company name swapped, 4 random per visit. 34/34 pytest
+  (new watchlist round-trip test). All 8 Kane flows reworded for the Profile-menu logout and
+  profile-modal assertions. THIS IS THE FEATURE FREEZE.

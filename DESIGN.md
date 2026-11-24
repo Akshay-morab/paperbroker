@@ -239,7 +239,9 @@ Ops page (admin only)          backend                          box
 | Page | Contents | Kane-relevant text |
 |---|---|---|
 | Login/Signup | form, error text | "Signed in as X", "Cash: $100,000.00" |
-| Dashboard | watchlist as a **grid of large clickable stock cards** (symbol, name, live price, change badge — the whole card is the link, per user feedback Nov 24) | symbol cards; header cash |
+| All Shares (route /) | every instrument as a **large clickable stock card** with a **star toggle** (whole card = link; stars persist via `watchlist_items`, Nov 25) | symbol cards |
+| Watchlist (route /watchlist) | the user's **starred shares only** (GET/POST/DELETE `/api/watchlist`); empty state prompts starring | empty state text |
+| Shell header | boxed nav pills w/ hover tooltips + **corner Profile menu** (User Profile Details / Log out) + clickable brand → About popup; "Signed in as" and Cash moved into the profile modal | "Log out", "User Profile Details", "Cash: $100,000.00" in the modal |
 | StockDetail | **candlestick chart** (lightweight-charts), quote header, **direct Buy / Sell buttons** (no toggle), quantity input, **4-second "Order filled" toast** with fill details, block/reject banners | banners/toasts render backend reason strings verbatim |
 | Portfolio | cash, holdings w/ live P&L, equity | row per holding, "Equity: $X" |
 | Orders | history table: symbol, side, qty, price, status, reason | status + reason text |
