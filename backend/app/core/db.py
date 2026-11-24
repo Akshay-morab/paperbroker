@@ -45,3 +45,16 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def ensure_schema(eng) -> None:
+    """Lightweight migrations. SQLAlchemy's create_all never ALTERs existing
+    tables, so columns added after a DB shipped get patched in here.
+    Runs after create_all; idempotent."""
+    with eng.connect() as conn:
+        cols = [row[1] for row in conn.exec_driver_sql("PRAGMA table_info(stock_profiles)")]
+        if cols and "dividend_yield" not in cols:
+            conn.exec_driver_sql(
+                "ALTER TABLE stock_profiles ADD COLUMN dividend_yield REAL NOT NULL DEFAULT 0"
+            )
+            conn.commit()

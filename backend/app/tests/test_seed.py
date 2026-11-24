@@ -30,6 +30,7 @@ def test_profiles_and_financials_seeded():
         assert profile is not None
         assert profile.sector == "Technology"
         assert profile.eps > 0 and profile.shares_outstanding > 0
+        assert 0.5 <= profile.dividend_yield <= 3.5
 
         rows = (
             db.query(StockFinancial)

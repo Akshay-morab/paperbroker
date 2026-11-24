@@ -68,6 +68,7 @@ class StockProfile(Base):
     sector: Mapped[str] = mapped_column(String(60), nullable=False)
     eps: Mapped[float] = mapped_column(Float, nullable=False)  # annual EPS; P/E derived live
     shares_outstanding: Mapped[int] = mapped_column(Integer, nullable=False)
+    dividend_yield: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)  # annual %
     fifty_two_week_high: Mapped[float] = mapped_column(Float, nullable=False)
     fifty_two_week_low: Mapped[float] = mapped_column(Float, nullable=False)
     founded_year: Mapped[int | None] = mapped_column(Integer, nullable=True)

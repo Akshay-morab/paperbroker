@@ -25,6 +25,7 @@ from .core.config import admin_emails, admin_password, starting_cash
 from .models import CashTransaction, Holding, Order, RulesConfig, Session as SessionRow, Stock, User
 from .models import StockFinancial, StockProfile
 from .core.db import Base, SessionLocal, engine
+from .core.db import ensure_schema
 
 PERSONA_PASSWORD = "demo1234"
 
@@ -89,14 +90,25 @@ def seed_instruments(db: Session) -> None:
 
 
 def seed_profiles(db: Session) -> None:
-    """Profiles + 5-year financials, derived deterministically from each symbol's
-    seed (same spirit as the price walk). Idempotent: existing rows are kept."""
+    """Profiles + 5-year financials + dividend yield, derived deterministically
+    from each symbol's seed (same spirit as the price walk). Idempotent: existing
+    rows are kept, and rows missing a dividend yield (pre-Nov-25 schema) get one."""
     from .models import StockFinancial, StockProfile
 
     for row in INSTRUMENTS:
         symbol = row["symbol"]
-        if db.get(StockProfile, symbol):
+
+        # Dedicated RNG so the yield is identical whether creating or patching.
+        yield_rng = random.Random(row["seed"] * 13 + 5)
+        div_yield = round(yield_rng.uniform(0.5, 3.5), 2)
+
+        existing = db.get(StockProfile, symbol)
+        if existing:
+            if existing.dividend_yield == 0.0:
+                existing.dividend_yield = div_yield
+                db.commit()
             continue
+
         sector, blurb = SECTOR_MAP[symbol]
         rng = random.Random(row["seed"] * 7 + 1)
 
@@ -109,7 +121,8 @@ def seed_profiles(db: Session) -> None:
         db.add(
             StockProfile(
                 symbol=symbol, description=blurb, sector=sector, eps=eps,
-                shares_outstanding=shares, fifty_two_week_high=high,
+                shares_outstanding=shares, dividend_yield=div_yield,
+                fifty_two_week_high=high,
                 fifty_two_week_low=low, founded_year=founded,
             )
         )
@@ -288,6 +301,7 @@ def main() -> None:
     args = parser.parse_args()
 
     Base.metadata.create_all(engine)  # standalone script: tables must exist before seeding
+    ensure_schema(engine)              # patch any columns added after this DB shipped
 
     db = SessionLocal()
     try:

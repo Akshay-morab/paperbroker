@@ -20,7 +20,8 @@ def cash_balance(db: Session, user_id: int) -> float:
 
 def portfolio(db: Session, user_id: int) -> dict:
     """Holdings joined with live sim prices -> per-position unrealized P&L,
-    cash, and equity = cash + market value of all positions."""
+    cash, equity = cash + market value of all positions, overall P&L vs the
+    starting credit, and dividends earned."""
     cash = round(cash_balance(db, user_id), 2)
     positions = []
     equity = cash
@@ -46,4 +47,31 @@ def portfolio(db: Session, user_id: int) -> dict:
         )
         equity += market_value
 
-    return {"cash": cash, "equity": round(equity, 2), "positions": positions}
+    starting = (
+        db.query(CashTransaction)
+        .filter(CashTransaction.user_id == user_id, CashTransaction.kind == "signup_credit")
+        .first()
+    )
+    starting_cash = starting.amount if starting else 0.0
+    pnl = round(equity - starting_cash, 2)
+    pnl_pct = round((pnl / starting_cash) * 100, 2) if starting_cash else 0.0
+
+    dividends = round(
+        sum(
+            t.amount
+            for t in db.query(CashTransaction)
+            .filter(CashTransaction.user_id == user_id, CashTransaction.kind == "dividend")
+            .all()
+        ),
+        2,
+    )
+
+    return {
+        "cash": cash,
+        "equity": round(equity, 2),
+        "positions": positions,
+        "starting_cash": starting_cash,
+        "pnl": pnl,
+        "pnl_pct": pnl_pct,
+        "dividends_earned": dividends,
+    }
