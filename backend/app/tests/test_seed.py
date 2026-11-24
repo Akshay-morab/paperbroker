@@ -52,7 +52,8 @@ def test_tilted_persona_is_one_bad_sell_from_the_kill_switch():
 
         sells = _sells(db, user.id)
         assert len(sells) == 9
-        assert all(o.realized_pnl is not None and o.realized_pnl < 0 for o in sells)
+        assert len([o for o in sells if o.realized_pnl is not None and o.realized_pnl < 0]) == 6
+        assert len([o for o in sells if (o.realized_pnl or 0) > 0]) == 3  # trailing winners break the streak
         assert round(sum(o.realized_pnl for o in sells), 2) == -9700.0  # $300 from the $10,000 limit
 
         # The trip lever: remaining position guaranteed to realize a loss at any plausible sim price.

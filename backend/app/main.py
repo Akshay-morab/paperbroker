@@ -7,6 +7,7 @@ from fastapi import FastAPI
 
 from .auth.api import me_router, router as auth_router
 from .core.db import Base, SessionLocal, engine
+from .engines.guardrails.api import admin_router, router as guardrails_router
 from .engines.ledger.api import router as portfolio_router
 from .engines.orders.api import router as orders_router
 from .engines.prices.api import router as stocks_router
@@ -30,3 +31,5 @@ app.include_router(me_router, prefix="/api")
 app.include_router(stocks_router, prefix="/api")
 app.include_router(orders_router, prefix="/api")
 app.include_router(portfolio_router, prefix="/api")
+app.include_router(guardrails_router, prefix="/api")
+app.include_router(admin_router, prefix="/api")

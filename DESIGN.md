@@ -162,8 +162,8 @@ Rich per-stock detail page — everything simulated and seeded, zero external ca
 |---|---|
 | Files | `engines/orders/service.py`, `engines/orders/api.py` |
 | Responsibility | the heart: validation → guardrail gate → fill → ledger update, atomically |
-| Lifecycle | `NEW → [guardrails] → blocked` or `→ [validation] → rejected` or `→ FILLED` |
-| Core logic | `place_order(user, symbol, side, qty)`: ① `guardrails.evaluate(...)` — block wins, nothing else runs ② validation (qty ≥ 1 integer; buy: cash ≥ qty·price; sell: holdings ≥ qty) ③ fill at engine price inside ONE DB transaction: insert order (status filled, filled_price, realized_pnl for sells), update holdings (weighted avg cost on buy; reduce on sell), insert cash txn (signed, balance_after) ④ recompute guardrail state ⑤ return order |
+| Lifecycle | `NEW → [validation] → rejected` or `→ [guardrails] → blocked` or `→ FILLED` |
+| Core logic | `place_order(user, symbol, side, qty)`: ① validation (qty ≥ 1 integer; buy: cash ≥ qty·price; sell: holdings ≥ qty) — hard physical constraints surface FIRST (flipped Nov 24: validation-first keeps AC-3.2 reachable — a fresh account's oversize order otherwise trips the position-size cap before it can ever be "insufficient cash"; no guardrail flow is affected) ② `guardrails.evaluate(...)` with derived state — behavioral discipline; block wins, nothing else runs ③ fill at engine price inside ONE DB transaction: insert order (status filled, filled_price, realized_pnl for sells), update holdings (weighted avg cost on buy; reduce on sell), insert cash txn (signed, balance_after) ④ recompute guardrail state ⑤ return order |
 | Order types | v1: market only. `order_type` column exists so limit orders are additive later |
 | Rejected reasons | `"Rejected: insufficient cash"` · `"Rejected: insufficient shares"` · `"Rejected: invalid quantity"` |
 | Invariant | for every filled order: `Δcash + Δholdings_value = 0` on buy, and sell books `realized_pnl = qty·(price − avg_cost)` |

@@ -49,8 +49,9 @@ def _reset_user_rows(db: Session, email: str) -> None:
     user = db.query(User).filter(User.email == email).first()
     if not user:
         return
-    db.query(Order).filter(Order.user_id == user.id).delete()
+    # FK-safe order: cash txns reference orders (order_id), so they go first.
     db.query(CashTransaction).filter(CashTransaction.user_id == user.id).delete()
+    db.query(Order).filter(Order.user_id == user.id).delete()
     db.query(Holding).filter(Holding.user_id == user.id).delete()
     db.query(RulesConfig).filter(RulesConfig.user_id == user.id).delete()
     db.query(SessionRow).filter(SessionRow.user_id == user.id).delete()
@@ -131,14 +132,17 @@ def seed_tilted(db: Session) -> None:
     # (Holdings rows are constructed directly in their post-sell state: order rows carry the narrative.)
     db.add(Holding(user_id=user.id, symbol="TSLA", quantity=10, avg_cost=420.0))
 
-    # 9 loss-realizing sells today: 8 x 10 @ 312.00, then 1 x 10 @ 314.00.
-    # pnl: 8 x (10 * (312 - 420)) = -8,640 ; + 10 * (314 - 420) = -1,060  =>  -9,700 total.
-    sell_prices = [312.00] * 8 + [314.00]
+    # 9 sells today, net -9,700: six panic dumps @ 254.50 (-1,655 each = -9,930),
+    # then three small winners @ 425/430/428 (+230). The trailing winners matter:
+    # they break the 3-straight-losses streak, so the cooldown is NOT active and
+    # the 10th trade reaches the kill switch (DESIGN §3.4 check order).
+    # Cash check: 58,000 + 6x2,545 + 4,250 + 4,300 + 4,280 = 86,100.
+    sell_prices = [254.50] * 6 + [425.00, 430.00, 428.00]
     for i, price in enumerate(sell_prices):
         pnl = 10 * (price - 420.0)
         qty_delta = 10 * price
         cash += qty_delta
-        at = now - timedelta(minutes=[95, 88, 80, 70, 60, 45, 30, 18, 8][i])
+        at = now - timedelta(minutes=[95, 88, 80, 70, 60, 45, 30, 20, 10][i])
         _filled_order(db, user.id, "TSLA", "sell", 10, price, pnl, at)
         _cash_move(db, user.id, qty_delta, "sell", cash, at)
 

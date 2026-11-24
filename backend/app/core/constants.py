@@ -7,7 +7,7 @@ Do not reword from anywhere else.
 
 # --- guardrail blocks -------------------------------------------------------
 BLOCKED_DAILY_LOSS = "Blocked: daily loss limit reached. Trading locked until tomorrow."
-BLOCKED_COOLDOWN = "Blocked: cooldown active after 3 consecutive losses. Try again in {mm:ss}."
+BLOCKED_COOLDOWN = "Blocked: cooldown active after 3 consecutive losses. Try again in {mmss}."
 BLOCKED_TRADE_LIMIT = "Blocked: daily trade limit reached (10/10)."
 BLOCKED_POSITION_SIZE = "Blocked: order exceeds position size cap (20% of equity)."
 BLOCKED_OPEN_POSITIONS = "Blocked: max open positions reached (5)."

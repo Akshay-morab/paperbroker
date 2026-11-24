@@ -1,11 +1,19 @@
 """Order engine — the heart of the app (DESIGN.md §3.3).
 
-place_order: instrument check -> guardrail gate (block wins) -> validation ->
-fill at the current simulated price -> atomic ledger update, ONE commit.
+place_order: instrument check → validation (hard constraints) → guardrail gate
+(behavioral discipline) → fill at the current simulated price → atomic ledger
+update, ONE commit.
+
+Check order (flipped Nov 24, see DESIGN §3.3): financial validation runs BEFORE
+the guardrail gate — "you don't have the cash" is a physical fact and surfaces
+before any behavioral policy. Without this, a fresh account can never see
+"insufficient cash" (any oversize order trips the position-size cap first).
+No guardrail flow is affected: the trip-sell, overtrade, size-cap, cooldown and
+kill-switch paths all still fire in the same order within the gate itself.
 
 Books invariant (§3.5): every filled order moves cash, holdings and its own row
-in a single transaction; rejected/blocked attempts are still recorded (AC-6.1)
-but never touch the books.
+in a single transaction; rejected/blocked attempts are recorded (AC-6.1) but
+never touch the books.
 """
 
 from fastapi import HTTPException
@@ -17,7 +25,8 @@ from ...core.constants import (
     REJECTED_INVALID_QUANTITY,
     UNKNOWN_SYMBOL,
 )
-from ...models import CashTransaction, Holding, Order, RulesConfig, User
+from ...models import CashTransaction, Holding, Order, User
+from ..guardrails import state as guardrail_state
 from ..guardrails.rules import evaluate
 from ..ledger.service import cash_balance
 from ..prices.engine import price_engine
@@ -37,20 +46,10 @@ def place_order(db: Session, user: User, symbol: str, side: str, quantity) -> Or
         return _record_attempt(db, user.id, symbol, side, 0, "rejected", REJECTED_INVALID_QUANTITY)
 
     price = quote["price"]
-
-    # Guardrail gate — block wins, nothing else runs (real rules: Wed, §3.4).
-    rules = db.query(RulesConfig).filter(RulesConfig.user_id == user.id).first()
-    decision = evaluate(
-        {"user_id": user.id, "symbol": symbol, "side": side, "quantity": quantity},
-        None,  # gstate lands with Wednesday's state.py
-        rules,
-    )
-    if not decision.allowed:
-        return _record_attempt(db, user.id, symbol, side, quantity, "blocked", decision.reason)
-
     cash = cash_balance(db, user.id)
     holding = db.query(Holding).filter(Holding.user_id == user.id, Holding.symbol == symbol).first()
 
+    # ① Hard validation — physical constraints surface first.
     if side == "buy":
         cost = round(price * quantity, 2)
         if cash + 1e-9 < cost:
@@ -58,6 +57,24 @@ def place_order(db: Session, user: User, symbol: str, side: str, quantity) -> Or
     else:
         if not holding or holding.quantity < quantity:
             return _record_attempt(db, user.id, symbol, side, quantity, "rejected", REJECTED_INSUFFICIENT_SHARES)
+
+    # ② Guardrail gate — derived state + pure rules; block wins, nothing else runs.
+    rules = guardrail_state.rules_for(db, user.id)
+    gstate = guardrail_state.derive(db, user.id, rules)
+    decision = evaluate(
+        {
+            "user_id": user.id,
+            "symbol": symbol,
+            "side": side,
+            "quantity": quantity,
+            "price": price,
+            "opens_new_position": holding is None,
+        },
+        gstate,
+        rules,
+    )
+    if not decision.allowed:
+        return _record_attempt(db, user.id, symbol, side, quantity, "blocked", decision.reason)
 
     # -- the fill: one transaction, books move together --------------------------------
     if side == "buy":
