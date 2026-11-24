@@ -6,6 +6,35 @@
 *(Name note: this repo runs under a working title until the demo video records on Thu Nov 26 —
 GitHub renames are free and redirect, so the final brand can land any time this week.)*
 
+## What this is, in plain words
+
+**A practice stock market.** You get $100,000 of fake money, 22 fake companies whose prices
+move on their own, and you buy and sell shares like a real broker app. Cash, holdings, and
+profit/loss are all tracked honestly, like a real bank ledger.
+
+**The discipline engine — the part that makes this different.** "Tilt" is trader slang for
+the moment you stop thinking and start *reacting*: you lose money, get angry, and immediately
+trade again to win it back — usually losing even more. Every experienced trader knows tilt.
+Most trading apps don't care. This one does: five hard rules that **physically stop you** —
+
+1. Lose $10,000 in a day? Trading is locked until tomorrow. No "one more trade."
+2. Already made 10 trades today? The 11th is refused. Done for the day.
+3. Three losing trades in a row? A forced 30-minute cooldown. Walk away.
+4. Want to put 20%+ of everything you own into one stock? Refused.
+5. Already holding 5 different stocks? The 6th is refused.
+
+The message isn't a suggestion — the order simply does not go through. Other brokers let you
+trade; **this one decides when you're done for the day.**
+
+**And an AI checked it.** [Kane CLI](https://www.testmuai.com/) is an AI tester: flows are
+described in plain English ("log in, buy 10 shares, check the cash dropped"), and Kane opens
+a real browser, does it like a human, and reports pass or fail with video proof. This app was
+built by an AI coding agent and verified flow-by-flow with Kane — including the moment the
+kill switch slams the door.
+
+**One breath:** *a practice trading app that protects you from your worst self — the tilt
+locker — tested in a real browser by an AI.*
+
 ## What it is
 
 - **Paper trading:** simulated, deterministic market prices; real bookkeeping underneath — cash,
