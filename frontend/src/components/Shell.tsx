@@ -1,16 +1,22 @@
 import { ReactNode, useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Alert, Anchor, AppShell, Button, Group, Text } from '@mantine/core'
+import { Alert, Anchor, AppShell, Button, Group, Text, Tooltip } from '@mantine/core'
+import {
+  IconBriefcase,
+  IconChartCandle,
+  IconReceipt2,
+  IconShield,
+} from '@tabler/icons-react'
 import { api, Profile } from '../api'
 
 const fmtMoney = (n: number) =>
   '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 const NAV = [
-  { to: '/', label: 'Watchlist' },
-  { to: '/portfolio', label: 'Portfolio' },
-  { to: '/orders', label: 'Orders' },
-  { to: '/discipline', label: 'Discipline' },
+  { to: '/', label: 'Watchlist', icon: IconChartCandle, tip: 'Your watchlist of shares' },
+  { to: '/portfolio', label: 'Portfolio', icon: IconBriefcase, tip: 'Your holdings and net worth' },
+  { to: '/orders', label: 'Orders', icon: IconReceipt2, tip: 'Your full order history' },
+  { to: '/discipline', label: 'Discipline', icon: IconShield, tip: 'Your trading guardrails' },
 ]
 
 /**
@@ -58,15 +64,16 @@ export default function Shell({ children }: { children: ReactNode }) {
           <Group gap="lg">
             <Text fw={700} fz="lg">PaperBroker</Text>
             {NAV.map((item) => (
-              <Anchor
-                key={item.to}
-                component={Link}
-                to={item.to}
-                c={loc.pathname === item.to ? 'indigo' : 'dimmed'}
-                fz="sm"
-              >
-                {item.label}
-              </Anchor>
+              <Tooltip key={item.to} label={item.tip} position="bottom" withArrow openDelay={200}>
+                <Anchor
+                  component={Link}
+                  to={item.to}
+                  className={`nav-pill ${loc.pathname === item.to ? 'nav-pill-active' : ''}`}
+                >
+                  <item.icon size={15} stroke={1.75} />
+                  <span>{item.label}</span>
+                </Anchor>
+              </Tooltip>
             ))}
           </Group>
           <Group gap="md" wrap="nowrap">

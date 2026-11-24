@@ -20,4 +20,4 @@ Click the AAPL stock card on the watchlist, enter quantity 1, click the Buy butt
 ## The 11th is blocked
 Enter quantity 1 again and click the Buy button, and verify the banner shows
 "Blocked: daily trade limit reached (10/10)."
-Open http://localhost:5173/orders and verify the last row shows status "blocked".
+Open http://localhost:5173/orders and verify an entry shows status "blocked".

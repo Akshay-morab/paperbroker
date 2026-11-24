@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { Anchor, Badge, Group, Table, Text, Title } from '@mantine/core'
+import { Badge, Group, Paper, Stack, Text, Title } from '@mantine/core'
 import Shell from '../components/Shell'
 import { api, PlacedOrder } from '../api'
 
@@ -37,42 +36,38 @@ export default function Orders() {
         </Text>
       )}
 
-      <Table highlightOnHover>
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th>Symbol</Table.Th>
-            <Table.Th>Side</Table.Th>
-            <Table.Th>Qty</Table.Th>
-            <Table.Th>Price</Table.Th>
-            <Table.Th>Status</Table.Th>
-            <Table.Th>Reason</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {rows.map((o) => (
-            <Table.Tr key={o.id}>
-              <Table.Td className="mono">
-                <Anchor component={Link} to={`/stocks/${o.symbol}`}>
-                  {o.symbol}
-                </Anchor>
-              </Table.Td>
-              <Table.Td c={o.side === 'buy' ? 'teal' : 'red'}>{o.side}</Table.Td>
-              <Table.Td className="mono">{o.quantity}</Table.Td>
-              <Table.Td className="mono">{o.filled_price != null ? fmtMoney(o.filled_price) : '—'}</Table.Td>
-              <Table.Td>
+      <Stack gap="sm">
+        {rows.map((o) => (
+          <Paper key={o.id} radius="md" withBorder p="sm" className="order-row">
+            <Group wrap="nowrap" justify="space-between">
+              <Group gap="sm" wrap="nowrap">
+                <Badge color={o.side === 'buy' ? 'teal' : 'red'} variant="light">
+                  {o.side}
+                </Badge>
+                <div>
+                  <Text size="sm">
+                    <strong>{o.side === 'buy' ? 'Bought' : 'Sold'} {o.quantity} {o.symbol}</strong>
+                    {o.filled_price != null ? ` @ ${fmtMoney(o.filled_price)}` : ''}
+                  </Text>
+                  {o.reason && (
+                    <Text size="xs" c="dimmed">{o.reason}</Text>
+                  )}
+                </div>
+              </Group>
+              <Group gap="sm" wrap="nowrap">
+                {o.realized_pnl != null && (
+                  <Text size="sm" className="mono" c={o.realized_pnl >= 0 ? 'teal' : 'red'}>
+                    {o.realized_pnl >= 0 ? '+' : ''}{fmtMoney(o.realized_pnl)}
+                  </Text>
+                )}
                 <Badge color={STATUS_COLORS[o.status] ?? 'gray'} variant="light">
                   {o.status}
                 </Badge>
-              </Table.Td>
-              <Table.Td>
-                <Text c="dimmed" size="xs">
-                  {o.reason ?? ''}
-                </Text>
-              </Table.Td>
-            </Table.Tr>
-          ))}
-        </Table.Tbody>
-      </Table>
+              </Group>
+            </Group>
+          </Paper>
+        ))}
+      </Stack>
     </Shell>
   )
 }

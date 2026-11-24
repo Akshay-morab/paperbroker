@@ -43,3 +43,86 @@
 .hero {
   background: linear-gradient(135deg, #1a2332 0%, #101521 100%);
 }
+
+/* --- boxed nav pills ---------------------------------------------------------------- */
+
+.nav-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid #2a3344;
+  border-radius: 8px;
+  background: #161b24;
+  color: #aab3c5;
+  font-size: 0.85rem;
+  text-decoration: none;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.nav-pill:hover {
+  border-color: #4c6ef5;
+  color: #e6e9ef;
+}
+
+.nav-pill-active {
+  border-color: #4c6ef5;
+  color: #7fa3f5;
+  background: #1a2332;
+}
+
+/* --- 52-week range bar ------------------------------------------------------------------ */
+
+.rangebar {
+  position: relative;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #a63a3f, #2a3344 50%, #2fbf71);
+}
+
+.rangebar-dot {
+  position: absolute;
+  top: -3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #4c6ef5;
+  transform: translateX(-6px);
+}
+
+/* --- financial bars ------------------------------------------------------------------------ */
+
+.finchart {
+  width: 100%;
+  height: auto;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+/* --- trade cards ------------------------------------------------------------------------------ */
+
+.trade-buy {
+  border-color: #1d7a4a;
+  background: linear-gradient(180deg, rgba(29, 122, 74, 0.08), transparent);
+}
+
+.trade-sell {
+  border-color: #a63a3f;
+  background: linear-gradient(180deg, rgba(166, 58, 63, 0.08), transparent);
+}
+
+/* --- order rows ------------------------------------------------------------------------------- */
+
+.order-row {
+  transition: border-color 0.15s ease;
+}
+
+.order-row:hover {
+  border-color: #4c6ef5;
+}

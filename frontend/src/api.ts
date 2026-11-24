@@ -56,7 +56,28 @@ export type Quote = {
 
 export type Candle = { t: number; o: number; h: number; l: number; c: number }
 
-export type StockDetailData = Quote & { candles: Candle[] }
+export type StockProfile = {
+  symbol: string
+  description: string
+  sector: string
+  eps: number
+  shares_outstanding: number
+  fifty_two_week_high: number
+  fifty_two_week_low: number
+  founded_year: number | null
+}
+
+export type Financial = { year: number; revenue: number; net_profit: number }
+
+export type StockDetailData = Quote & {
+  candles: Candle[]
+  history: Candle[]
+  profile: StockProfile | null
+  pe: number | null
+  market_cap: number | null
+  financials: Financial[]
+  similar: Quote[]
+}
 
 export type PlacedOrder = {
   id: number

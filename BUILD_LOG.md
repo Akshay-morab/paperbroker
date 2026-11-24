@@ -48,3 +48,12 @@ The daily ritual (DESIGN.md §8.3): one entry per day — what worked, what bit,
   details, a net-worth hero on Portfolio, a split branding login page, and 22 instruments
   (up from 8). Flow texts updated to match the new interactions — old-UI recordings are
   invalidated by design; the suite re-authors and that IS the loop story for the video.
+- **Wed Nov 25 (late) — fundamentals + UX round 3 (user feedback):** the Phase-2 tables
+  landed for real — profiles (sector/eps/shares/52w) + 5-year financials per instrument,
+  5 years of daily price history for chart ranges (1D/1M/2M/4M/6M/1Y/5Y), similar-stocks
+  suggestions by sector, fully separated Buy/Sell cards with live totals, a 2s purchase
+  popup, boxed nav pills with hover tooltips, portfolio position cards, orders as an
+  activity feed. The midnight gotcha bit FOR REAL just after 00:00 — the tilted persona's
+  panic dumps landed on yesterday, caught instantly by the guardrail tests; fixed with
+  same-day clamping in the seed (33/33 green). Scope frozen after this pass: suite, EC2,
+  video.
