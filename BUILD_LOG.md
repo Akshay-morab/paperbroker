@@ -80,3 +80,12 @@ The daily ritual (DESIGN.md §8.3): one entry per day — what worked, what bit,
   order-history entries, the discipline lock, portfolio rows. Ephemeral UI for humans,
   permanent records for verification. Also fixed a live crash: dividend_yield missing
   from the profile API payload → blank stock page (caught by the human, fixed in minutes).
+- **Thu Nov 26 (~5 AM) — the blank-page arc (the loop's best story):** user reported
+  blank stock pages again. Source read clean, build clean — dead end. Ran the same
+  Kane probe twice around the fix: RED ("empty root after waits and refresh",
+  confirmed_product_bug, evidence pack) → restarted the two-day-old Vite dev server
+  (its log showed a poisoned module graph from ~50 hot-reloads + mid-session dep
+  re-optimizations) → same probe GREEN (AAPL page, price + Buy card verified).
+  Lesson, now a rule: long-lived watchers lie — uvicorn's StatReload already proved it,
+  Vite confirmed it. Restart the servers before debugging the code. Ctrl+Shift+R for
+  the human after a wedged dev session.
