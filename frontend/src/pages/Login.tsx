@@ -1,5 +1,6 @@
 import { FormEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Alert, Button, Card, Center, PasswordInput, Stack, Text, TextInput, Title } from '@mantine/core'
 import { api } from '../api'
 
 export default function Login() {
@@ -21,7 +22,7 @@ export default function Login() {
       })
       nav('/')
     } catch (err) {
-      // Backend reason strings render verbatim — Kane asserts on them (DESIGN.md §3.4).
+      // Backend reason strings render verbatim — Kane asserts on them.
       setError(err instanceof Error ? err.message : 'request failed')
     } finally {
       setBusy(false)
@@ -29,51 +30,55 @@ export default function Login() {
   }
 
   return (
-    <div className="auth-wrap">
-      <div className="auth-card">
-        <h1>PaperBroker</h1>
-        <p className="tagline">A paper-trading broker with a discipline engine.</p>
+    <Center mih="100vh" p="md">
+      <Card shadow="sm" padding="xl" radius="md" withBorder maw={400} w="100%">
+        <Title order={3}>PaperBroker</Title>
+        <Text c="dimmed" size="sm" mb="md">
+          A paper-trading broker with a discipline engine.
+        </Text>
         <form onSubmit={submit}>
-          <label htmlFor="email">Email</label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            autoFocus
-          />
-          <label htmlFor="password">Password</label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={8}
-          />
-          {error && (
-            <p className="error" role="alert">
-              {error}
-            </p>
-          )}
-          <button type="submit" disabled={busy}>
-            {mode === 'login' ? 'Log in' : 'Create account'}
-          </button>
+          <Stack>
+            <TextInput
+              id="email"
+              label="Email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.currentTarget.value)}
+              required
+              autoFocus
+            />
+            <PasswordInput
+              id="password"
+              label="Password"
+              value={password}
+              onChange={(e) => setPassword(e.currentTarget.value)}
+              required
+              minLength={8}
+            />
+            {error && (
+              <Alert role="alert" color="red">
+                {error}
+              </Alert>
+            )}
+            <Button type="submit" loading={busy}>
+              {mode === 'login' ? 'Log in' : 'Create account'}
+            </Button>
+          </Stack>
         </form>
-        <button
-          className="linklike"
+        <Button
+          variant="subtle"
+          mt="xs"
           onClick={() => {
             setMode(mode === 'login' ? 'signup' : 'login')
             setError('')
           }}
         >
           {mode === 'login' ? 'Need an account? Sign up' : 'Have an account? Log in'}
-        </button>
-        <p className="demo-hint">
+        </Button>
+        <Text c="dimmed" size="xs" mt="md">
           Demo personas: fresh@demo · tilted@demo · cooldown@demo — password demo1234
-        </p>
-      </div>
-    </div>
+        </Text>
+      </Card>
+    </Center>
   )
 }

@@ -1,9 +1,17 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Anchor, Badge, Group, Table, Text, Title } from '@mantine/core'
+import Shell from '../components/Shell'
 import { api, PlacedOrder } from '../api'
 
 const fmtMoney = (n: number) =>
   '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+const STATUS_COLORS: Record<string, string> = {
+  filled: 'green',
+  rejected: 'orange',
+  blocked: 'red',
+}
 
 export default function Orders() {
   const [rows, setRows] = useState<PlacedOrder[]>([])
@@ -15,46 +23,56 @@ export default function Orders() {
   }, [])
 
   return (
-    <main className="dash">
-      <nav className="nav">
-        <Link to="/">Watchlist</Link>
-        <Link to="/portfolio">Portfolio</Link>
-      </nav>
+    <Shell>
+      <Group justify="space-between" mb="md">
+        <Title order={2}>Order history</Title>
+        <Text c="dimmed" size="xs">
+          every attempt is recorded — fills, rejects, and blocks
+        </Text>
+      </Group>
 
-      <header className="dash-header">
-        <div>
-          <h1>Order history</h1>
-        </div>
-      </header>
+      {rows.length === 0 && (
+        <Text c="dimmed" mb="md">
+          No orders yet.
+        </Text>
+      )}
 
-      {rows.length === 0 && <p className="muted">No orders yet.</p>}
-
-      <table className="quotes">
-        <thead>
-          <tr>
-            <th>Symbol</th>
-            <th>Side</th>
-            <th>Qty</th>
-            <th>Price</th>
-            <th>Status</th>
-            <th>Reason</th>
-          </tr>
-        </thead>
-        <tbody>
+      <Table highlightOnHover>
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th>Symbol</Table.Th>
+            <Table.Th>Side</Table.Th>
+            <Table.Th>Qty</Table.Th>
+            <Table.Th>Price</Table.Th>
+            <Table.Th>Status</Table.Th>
+            <Table.Th>Reason</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
           {rows.map((o) => (
-            <tr key={o.id}>
-              <td className="mono">
-                <Link to={`/stocks/${o.symbol}`}>{o.symbol}</Link>
-              </td>
-              <td className={o.side === 'buy' ? 'up' : 'down'}>{o.side}</td>
-              <td className="mono">{o.quantity}</td>
-              <td className="mono">{o.filled_price != null ? fmtMoney(o.filled_price) : '—'}</td>
-              <td>{o.status}</td>
-              <td className="muted small">{o.reason ?? ''}</td>
-            </tr>
+            <Table.Tr key={o.id}>
+              <Table.Td className="mono">
+                <Anchor component={Link} to={`/stocks/${o.symbol}`}>
+                  {o.symbol}
+                </Anchor>
+              </Table.Td>
+              <Table.Td c={o.side === 'buy' ? 'teal' : 'red'}>{o.side}</Table.Td>
+              <Table.Td className="mono">{o.quantity}</Table.Td>
+              <Table.Td className="mono">{o.filled_price != null ? fmtMoney(o.filled_price) : '—'}</Table.Td>
+              <Table.Td>
+                <Badge color={STATUS_COLORS[o.status] ?? 'gray'} variant="light">
+                  {o.status}
+                </Badge>
+              </Table.Td>
+              <Table.Td>
+                <Text c="dimmed" size="xs">
+                  {o.reason ?? ''}
+                </Text>
+              </Table.Td>
+            </Table.Tr>
           ))}
-        </tbody>
-      </table>
-    </main>
+        </Table.Tbody>
+      </Table>
+    </Shell>
   )
 }

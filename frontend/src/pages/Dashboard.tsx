@@ -1,104 +1,64 @@
-import { useCallback, useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { api, Profile, Quote } from '../api'
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { Anchor, Table, Text, Title } from '@mantine/core'
+import Shell from '../components/Shell'
+import { api, Quote } from '../api'
 
 const fmtMoney = (n: number) =>
   '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 export default function Dashboard() {
-  const nav = useNavigate()
-  const [profile, setProfile] = useState<Profile | null>(null)
   const [quotes, setQuotes] = useState<Quote[]>([])
-  const [loaded, setLoaded] = useState(false)
-
-  const logout = useCallback(async () => {
-    try {
-      await api('/api/auth/logout', { method: 'POST' })
-    } catch {
-      /* session already gone */
-    }
-    nav('/login')
-  }, [nav])
 
   useEffect(() => {
     let alive = true
-    api<Profile>('/api/me')
-      .then((p) => {
-        if (alive) {
-          setProfile(p)
-          setLoaded(true)
-        }
-      })
-      .catch(() => nav('/login'))
-
     const loadQuotes = () =>
       api<Quote[]>('/api/stocks')
         .then((q) => {
           if (alive) setQuotes(q)
         })
         .catch(() => {})
-
     loadQuotes()
     const id = setInterval(loadQuotes, 5000)
     return () => {
       alive = false
       clearInterval(id)
     }
-  }, [nav])
+  }, [])
 
   return (
-    <main className="dash">
-      <header className="dash-header">
-        <div>
-          <h1>PaperBroker</h1>
-          {profile && <p className="signed-in">Signed in as {profile.email}</p>}
-        </div>
-        <div className="cash-box">
-          {profile && (
-            <span className="cash-label">
-              Cash: <strong>{fmtMoney(profile.cash)}</strong>
-            </span>
-          )}
-          <button onClick={logout}>Log out</button>
-        </div>
-      </header>
-
-      <nav className="nav">
-        <Link to="/">Watchlist</Link>
-        <Link to="/portfolio">Portfolio</Link>
-        <Link to="/orders">Orders</Link>
-        <Link to="/discipline">Discipline</Link>
-      </nav>
-
-      {!loaded && <p className="muted">Loading…</p>}
-
-      <table className="quotes">
-        <thead>
-          <tr>
-            <th>Symbol</th>
-            <th>Name</th>
-            <th>Price</th>
-            <th>Change</th>
-          </tr>
-        </thead>
-        <tbody>
+    <Shell>
+      <Title order={2} mb="md">Watchlist</Title>
+      <Table highlightOnHover>
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th>Symbol</Table.Th>
+            <Table.Th>Name</Table.Th>
+            <Table.Th>Price</Table.Th>
+            <Table.Th>Change</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
           {quotes.map((q) => (
-            <tr key={q.symbol}>
-              <td className="mono">
-                <Link to={`/stocks/${q.symbol}`}>{q.symbol}</Link>
-              </td>
-              <td>{q.name}</td>
-              <td className="mono">{fmtMoney(q.price)}</td>
-              <td className={q.change_pct >= 0 ? 'up' : 'down'}>
+            <Table.Tr key={q.symbol}>
+              <Table.Td className="mono">
+                <Anchor component={Link} to={`/stocks/${q.symbol}`}>
+                  {q.symbol}
+                </Anchor>
+              </Table.Td>
+              <Table.Td>{q.name}</Table.Td>
+              <Table.Td className="mono">{fmtMoney(q.price)}</Table.Td>
+              <Table.Td className="mono" c={q.change_pct >= 0 ? 'teal' : 'red'}>
                 {q.change_pct >= 0 ? '+' : ''}
                 {q.change_pct.toFixed(2)}%
-              </td>
-            </tr>
+              </Table.Td>
+            </Table.Tr>
           ))}
-        </tbody>
-      </table>
-
-      <p className="muted small">Simulated market — prices tick every 3 seconds.</p>
-    </main>
+        </Table.Tbody>
+      </Table>
+      <Text c="dimmed" size="xs" mt="sm">
+        Simulated market — prices tick every 3 seconds.
+      </Text>
+    </Shell>
   )
 }

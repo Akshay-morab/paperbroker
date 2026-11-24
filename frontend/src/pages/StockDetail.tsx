@@ -1,6 +1,8 @@
-import { FormEvent, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { api, ApiError, Candle, Quote, StockDetailData } from '../api'
+import { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
+import { Alert, Anchor, Button, Card, Group, NumberInput, SegmentedControl, Stack, Text, Title } from '@mantine/core'
+import Shell from '../components/Shell'
+import { api, ApiError, Candle, StockDetailData } from '../api'
 
 const fmtMoney = (n: number) =>
   '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -16,7 +18,7 @@ function Sparkline({ candles }: { candles: Candle[] }) {
     .join(' ')
   return (
     <svg viewBox="0 0 100 30" className="spark" preserveAspectRatio="none">
-      <polyline points={points} fill="none" stroke="#4c7ef3" strokeWidth="1" />
+      <polyline points={points} fill="none" stroke="#4c6ef5" strokeWidth="1" />
     </svg>
   )
 }
@@ -29,6 +31,7 @@ export default function StockDetail() {
   const [qty, setQty] = useState('10')
   const [toast, setToast] = useState('')
   const [banner, setBanner] = useState('')
+  const [busy, setBusy] = useState(false)
 
   useEffect(() => {
     let alive = true
@@ -50,8 +53,8 @@ export default function StockDetail() {
     }
   }, [symbol])
 
-  async function submit(e: FormEvent) {
-    e.preventDefault()
+  async function placeOrder() {
+    setBusy(true)
     setToast('')
     setBanner('')
     try {
@@ -64,89 +67,80 @@ export default function StockDetail() {
     } catch (err) {
       // Rejected/blocked reasons render verbatim (DESIGN.md §3.4).
       if (err instanceof ApiError) setBanner(err.detail)
+    } finally {
+      setBusy(false)
     }
   }
 
   if (notFound) {
     return (
-      <main className="dash">
-        <nav className="nav">
-          <Link to="/">← Watchlist</Link>
-        </nav>
-        <p className="banner error">unknown symbol</p>
-      </main>
+      <Shell>
+        <Alert role="alert" color="red" maw={430}>
+          unknown symbol
+        </Alert>
+      </Shell>
     )
   }
 
   return (
-    <main className="dash">
-      <nav className="nav">
-        <Link to="/">← Watchlist</Link>
-        <Link to="/portfolio">Portfolio</Link>
-        <Link to="/orders">Orders</Link>
-      </nav>
-
-      {detail && (
-        <>
-          <header className="dash-header">
-            <div>
-              <h1>
-                <span className="mono">{detail.symbol}</span> — {detail.name}
-              </h1>
-              <p className={`big-price ${detail.change_pct >= 0 ? 'up' : 'down'}`}>
+    <Shell>
+      <Group justify="space-between" align="flex-start" mb="md" wrap="nowrap">
+        <Stack gap={0}>
+          <Title order={2}>
+            <span className="mono">{detail?.symbol ?? symbol}</span> — {detail?.name ?? '…'}
+          </Title>
+          {detail && (
+            <>
+              <Text fz="xl" fw={700} className="mono" c={detail.change_pct >= 0 ? 'teal' : 'red'}>
                 {fmtMoney(detail.price)} ({detail.change_pct >= 0 ? '+' : ''}
                 {detail.change_pct.toFixed(2)}%)
-              </p>
-              <p className="muted small">
+              </Text>
+              <Text c="dimmed" size="xs">
                 Session open {fmtMoney(detail.session_open)} · simulated market
-              </p>
-            </div>
-            <Sparkline candles={detail.candles} />
-          </header>
+              </Text>
+            </>
+          )}
+        </Stack>
+        {detail && <Sparkline candles={detail.candles} />}
+      </Group>
 
-          <form className="ticket" onSubmit={submit}>
-            <h2>Place a market order</h2>
-            <div className="side-toggle">
-              <button
-                type="button"
-                className={side === 'buy' ? 'side active-buy' : 'side'}
-                onClick={() => setSide('buy')}
-              >
-                Buy
-              </button>
-              <button
-                type="button"
-                className={side === 'sell' ? 'side active-sell' : 'side'}
-                onClick={() => setSide('sell')}
-              >
-                Sell
-              </button>
-            </div>
-            <label htmlFor="qty">Quantity</label>
-            <input
-              id="qty"
-              type="number"
-              min={1}
-              step={1}
-              value={qty}
-              onChange={(e) => setQty(e.target.value)}
-            />
-            <button type="submit" className={side === 'buy' ? 'place-buy' : 'place-sell'}>
-              {side === 'buy' ? 'Place buy order' : 'Place sell order'}
-            </button>
-            {toast && (
-              <p className="banner ok" role="status">
-                {toast}
-              </p>
-            )}
-            {banner && (
-              <p className="banner error" role="alert">
-                {banner}
-              </p>
-            )}
-          </form>
-        </>
-      )}
-    </main>
+      <Card shadow="sm" padding="lg" radius="md" withBorder maw={430}>
+        <Title order={4} mb="sm">Place a market order</Title>
+        <Stack>
+          <SegmentedControl
+            value={side}
+            onChange={(v) => setSide(v as 'buy' | 'sell')}
+            data={[
+              { value: 'buy', label: 'Buy' },
+              { value: 'sell', label: 'Sell' },
+            ]}
+          />
+          <NumberInput
+            label="Quantity"
+            min={1}
+            step={1}
+            value={qty}
+            onChange={(v) => setQty(String(v ?? ''))}
+          />
+          <Button
+            color={side === 'buy' ? 'indigo' : 'red'}
+            onClick={placeOrder}
+            loading={busy}
+          >
+            {side === 'buy' ? 'Place buy order' : 'Place sell order'}
+          </Button>
+          {toast && (
+            <Alert role="status" color="teal">
+              {toast}
+            </Alert>
+          )}
+          {banner && (
+            <Alert role="alert" color="red">
+              {banner}
+            </Alert>
+          )}
+        </Stack>
+      </Card>
+    </Shell>
   )
 }

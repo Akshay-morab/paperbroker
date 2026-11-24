@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Alert, Card, SimpleGrid, Stack, Text, Title } from '@mantine/core'
+import Shell from '../components/Shell'
 import { api, GuardrailStatus } from '../api'
 
 const fmtMoney = (n: number) => {
@@ -48,73 +49,67 @@ export default function Discipline() {
   }, [status])
 
   return (
-    <main className="dash">
-      <nav className="nav">
-        <Link to="/">Watchlist</Link>
-        <Link to="/portfolio">Portfolio</Link>
-        <Link to="/orders">Orders</Link>
-      </nav>
-
-      <header className="dash-header">
-        <div>
-          <h1>Discipline</h1>
-          <p className="muted small">Every rule, enforced before the fill.</p>
-        </div>
-      </header>
+    <Shell>
+      <Stack gap={0} mb="md">
+        <Title order={2}>Discipline</Title>
+        <Text c="dimmed" size="sm">
+          Every rule, enforced before the fill.
+        </Text>
+      </Stack>
 
       {status?.locked && status.lock_reason && (
-        <p className="banner error" role="alert">
+        <Alert role="alert" color="red" mb="md" maw={560}>
           {status.lock_reason}
-        </p>
+        </Alert>
       )}
 
       {status && (
-        <div className="cards">
-          <div className="card">
-            <h2>Daily loss limit</h2>
-            <p className="big-price">{fmtMoney(status.daily_loss.used)}</p>
-            <p className="muted small">
+        <SimpleGrid cols={{ base: 1, xs: 2, md: 3 }} spacing="md">
+          <Card shadow="sm" padding="lg" radius="md" withBorder>
+            <Text c="dimmed" size="xs" tt="uppercase" mb="xs">Daily loss limit</Text>
+            <Text fz="xl" fw={700} className="mono">{fmtMoney(status.daily_loss.used)}</Text>
+            <Text c="dimmed" size="xs">
               of {fmtMoney(status.daily_loss.limit)} — {fmtMoney(status.daily_loss.remaining)} remaining
-            </p>
-          </div>
+            </Text>
+          </Card>
 
-          <div className="card">
-            <h2>Trades today</h2>
-            <p className="big-price">
+          <Card shadow="sm" padding="lg" radius="md" withBorder>
+            <Text c="dimmed" size="xs" tt="uppercase" mb="xs">Trades today</Text>
+            <Text fz="xl" fw={700} className="mono">
               {status.trade_cap.used}
-              <span className="muted">/{status.trade_cap.limit}</span>
-            </p>
-            <p className="muted small">blocked attempts never count</p>
-          </div>
+              <Text span c="dimmed" fz="xl">/{status.trade_cap.limit}</Text>
+            </Text>
+            <Text c="dimmed" size="xs">blocked attempts never count</Text>
+          </Card>
 
-          <div className="card">
-            <h2>Tilt cooldown</h2>
+          <Card shadow="sm" padding="lg" radius="md" withBorder>
+            <Text c="dimmed" size="xs" tt="uppercase" mb="xs">Tilt cooldown</Text>
             {status.cooldown.active ? (
               <>
-                <p className="big-price down">{countdown}</p>
-                <p className="muted small">after 3 consecutive losses</p>
+                <Text fz="xl" fw={700} className="mono" c="red">{countdown}</Text>
+                <Text c="dimmed" size="xs">after 3 consecutive losses</Text>
               </>
             ) : (
-              <p className="muted small">no cooldown active</p>
+              <Text fz="xl" fw={700} c="dimmed">—</Text>
             )}
-          </div>
+          </Card>
 
-          <div className="card">
-            <h2>Position size cap</h2>
-            <p className="big-price">{status.position_size_pct}%</p>
-            <p className="muted small">of equity per position</p>
-          </div>
+          <Card shadow="sm" padding="lg" radius="md" withBorder>
+            <Text c="dimmed" size="xs" tt="uppercase" mb="xs">Position size cap</Text>
+            <Text fz="xl" fw={700} className="mono">{status.position_size_pct}%</Text>
+            <Text c="dimmed" size="xs">of equity per position</Text>
+          </Card>
 
-          <div className="card">
-            <h2>Open positions</h2>
-            <p className="big-price">
+          <Card shadow="sm" padding="lg" radius="md" withBorder>
+            <Text c="dimmed" size="xs" tt="uppercase" mb="xs">Open positions</Text>
+            <Text fz="xl" fw={700} className="mono">
               {status.state.open_positions}
-              <span className="muted">/{status.open_positions_limit}</span>
-            </p>
-            <p className="muted small">new symbols blocked at the limit</p>
-          </div>
-        </div>
+              <Text span c="dimmed" fz="xl">/{status.open_positions_limit}</Text>
+            </Text>
+            <Text c="dimmed" size="xs">new symbols blocked at the limit</Text>
+          </Card>
+        </SimpleGrid>
       )}
-    </main>
+    </Shell>
   )
 }

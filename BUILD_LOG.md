@@ -37,3 +37,8 @@ The daily ritual (DESIGN.md §8.3): one entry per day — what worked, what bit,
   Bug wall additions: `{mm:ss}` is format-spec syntax, not a placeholder (KeyError at render);
   persona re-seed deleted orders before the cash rows referencing them (FK violation) — delete
   order fixed. Kane flows #5-8 written; deploy runbook scripted (scripts/deploy-ec2.sh).
+- **Tue Nov 24 — UI restyle (Mantine v7):** the hand-rolled CSS was too plain; swapped to
+  Mantine's AppShell (persistent header: nav + signed-in identity + cash + logout), striped
+  tables, card-based order ticket with a segmented Buy/Sell control, status badges on orders,
+  grid of discipline cards. Every Kane-asserted string preserved byte-exact; backend untouched
+  (32/32 still stands). TS clean; 101 kB gzip.
