@@ -5,6 +5,7 @@ import {
   AppShell,
   Button,
   Group,
+  Loader,
   Menu,
   Modal,
   Stack,
@@ -18,6 +19,7 @@ import {
   IconInfoCircle,
   IconLogout,
   IconReceipt2,
+  IconRefresh,
   IconShield,
   IconStar,
   IconUser,
@@ -47,6 +49,9 @@ export default function Shell({ children }: { children: ReactNode }) {
   const [profileOpen, setProfileOpen] = useState(false)
   const [aboutOpen, setAboutOpen] = useState(false)
   const [folio, setFolio] = useState<PortfolioData | null>(null)
+  const [resetOpen, setResetOpen] = useState(false)
+  const [resetState, setResetState] = useState<'confirm' | 'busy' | 'done' | 'error'>('confirm')
+  const [resetError, setResetError] = useState('')
 
   useEffect(() => {
     let alive = true
@@ -80,6 +85,18 @@ export default function Shell({ children }: { children: ReactNode }) {
       /* session already gone */
     }
     nav('/login')
+  }
+
+  /** Admin-only: re-arm the three demo personas via the existing tested endpoint. */
+  const resetPersonas = async () => {
+    setResetState('busy')
+    try {
+      await api('/api/admin/reset-personas', { method: 'POST' })
+      setResetState('done')
+    } catch (e) {
+      setResetError(e instanceof Error ? e.message : 'reset failed')
+      setResetState('error')
+    }
   }
 
   return (
@@ -124,6 +141,17 @@ export default function Shell({ children }: { children: ReactNode }) {
               >
                 User Profile Details
               </Menu.Item>
+              {profile?.role === 'admin' && (
+                <Menu.Item
+                  leftSection={<IconRefresh size={14} />}
+                  onClick={() => {
+                    setResetState('confirm')
+                    setResetOpen(true)
+                  }}
+                >
+                  Reset demo personas
+                </Menu.Item>
+              )}
               <Menu.Divider />
               <Menu.Item color="red" leftSection={<IconLogout size={14} />} onClick={logout}>
                 Log out
@@ -182,6 +210,64 @@ export default function Shell({ children }: { children: ReactNode }) {
                 </Text>
               </>
             )}
+          </Stack>
+        )}
+      </Modal>
+
+      {/* Admin-only: confirm + result for the persona re-arm (existing endpoint). */}
+      <Modal
+        opened={resetOpen}
+        onClose={() => setResetOpen(false)}
+        centered
+        radius="lg"
+        title="Reset demo personas"
+      >
+        {resetState === 'confirm' && (
+          <Stack gap="sm">
+            <Text size="sm">
+              Rebuild the three demo accounts — <strong>fresh@demo</strong>,{' '}
+              <strong>tilted@demo</strong> and <strong>cooldown@demo</strong>. Their trades,
+              holdings and stars are wiped, and the personas are re-armed: tilted returns to
+              one sell away from the kill switch.
+            </Text>
+            <Group justify="flex-end" gap="xs">
+              <Button variant="default" size="xs" onClick={() => setResetOpen(false)}>
+                Cancel
+              </Button>
+              <Button color="red" size="xs" onClick={resetPersonas}>
+                Reset personas
+              </Button>
+            </Group>
+          </Stack>
+        )}
+        {resetState === 'busy' && (
+          <Group gap="xs">
+            <Loader size="xs" />
+            <Text size="sm">Re-arming personas…</Text>
+          </Group>
+        )}
+        {resetState === 'done' && (
+          <Stack gap="sm">
+            <Text size="sm" c="teal">
+              Personas re-armed. tilted@demo is one sell away from the kill switch.
+            </Text>
+            <Group justify="flex-end">
+              <Button size="xs" onClick={() => setResetOpen(false)}>
+                Done
+              </Button>
+            </Group>
+          </Stack>
+        )}
+        {resetState === 'error' && (
+          <Stack gap="sm">
+            <Text size="sm" c="red">
+              {resetError}
+            </Text>
+            <Group justify="flex-end">
+              <Button variant="default" size="xs" onClick={() => setResetOpen(false)}>
+                Close
+              </Button>
+            </Group>
           </Stack>
         )}
       </Modal>

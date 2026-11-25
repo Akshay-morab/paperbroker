@@ -127,3 +127,9 @@ The daily ritual (DESIGN.md §8.3): one entry per day — what worked, what bit,
   paperbroker) exactly like the service does, and the daily personas cron got the same
   treatment. Deploy-runbook rule: every step must load the same env the service does,
   or the box drifts into "works but empty."
+- **Fri Nov 27 — the freeze bends once, deliberately:** admin gets a face. A "Reset demo
+  personas" item in the Profile menu (role=admin only) opens a confirm modal and calls
+  the existing, tested reset-personas endpoint — frontend-only, zero guardrail logic or
+  contract strings touched. The limits editor stays OUT: the thresholds are load-bearing
+  for the byte-exact Kane assertions and the tilted persona's trip math, and tunable
+  rules would soften the product's thesis. Phase-2 ops console remains the roadmap.
