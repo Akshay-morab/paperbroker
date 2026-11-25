@@ -52,7 +52,9 @@ EOF
 fi
 
 echo "==> seed (instruments + personas)"
-sudo -u "$APP_USER" bash -lc "cd $APP_DIR/backend && .venv/bin/python -m app.seed"
+chown "root:$APP_USER" /etc/paperbroker/env
+chmod 640 /etc/paperbroker/env
+sudo -u "$APP_USER" bash -lc "set -a; . /etc/paperbroker/env; cd $APP_DIR/backend && .venv/bin/python -m app.seed"
 
 echo "==> systemd service"
 cat >/etc/systemd/system/paperbroker-api.service <<EOF
@@ -95,4 +97,4 @@ systemctl reload nginx
 
 echo "==> deploy complete. App: http://<this-instance-public-ip>/"
 echo "    Persona logins: fresh@demo / tilted@demo / cooldown@demo (password demo1234)"
-echo "    Before judging: re-run  cd $APP_DIR/backend && .venv/bin/python -m app.seed --personas-only"
+echo "    Before judging: re-run  sudo -u $APP_USER bash -c 'set -a; . /etc/paperbroker/env; cd $APP_DIR/backend && .venv/bin/python -m app.seed --personas-only'"

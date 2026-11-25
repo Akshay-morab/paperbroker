@@ -118,3 +118,12 @@ The daily ritual (DESIGN.md §8.3): one entry per day — what worked, what bit,
   was abandoned for EC2 Instance Connect (browser terminal, no local key at all),
   which is now the documented path of least resistance on this Windows box. App live
   at the Elastic IP via nginx + systemd once the script finished its pass.
+- **Fri Nov 27 (small hours) — third runbook bug, caught by a human in under a minute:**
+  "app deploys, logins work, but All Shares is empty." Root cause: the script's seed
+  step ran without the env file, so instruments+personas landed in a DB at the default
+  path while systemd's EnvironmentFile pointed the service at
+  /opt/paperbroker/data/paperbroker.db — two SQLite files, and the app was reading the
+  empty one. Fix: the seed step now sources /etc/paperbroker/env (chmod 640, group
+  paperbroker) exactly like the service does, and the daily personas cron got the same
+  treatment. Deploy-runbook rule: every step must load the same env the service does,
+  or the box drifts into "works but empty."
