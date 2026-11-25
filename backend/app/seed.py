@@ -23,7 +23,7 @@ from sqlalchemy.orm import Session
 from .auth import service as auth_service
 from .core.config import admin_emails, admin_password, starting_cash
 from .models import CashTransaction, Holding, Order, RulesConfig, Session as SessionRow, Stock, User
-from .models import StockFinancial, StockProfile
+from .models import StockFinancial, StockProfile, WatchlistItem
 from .core.db import Base, SessionLocal, engine
 from .core.db import ensure_schema
 
@@ -144,6 +144,7 @@ def _reset_user_rows(db: Session, email: str) -> None:
     db.query(Holding).filter(Holding.user_id == user.id).delete()
     db.query(RulesConfig).filter(RulesConfig.user_id == user.id).delete()
     db.query(SessionRow).filter(SessionRow.user_id == user.id).delete()
+    db.query(WatchlistItem).filter(WatchlistItem.user_id == user.id).delete()
     db.query(User).filter(User.id == user.id).delete()
     db.commit()
 
