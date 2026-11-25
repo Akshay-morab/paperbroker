@@ -105,3 +105,16 @@ The daily ritual (DESIGN.md §8.3): one entry per day — what worked, what bit,
   (/stocks/NOPE shows "unknown symbol"). Second plaque lesson: stateful sims drift —
   an agent that never sleeps catches the bugs an evening of eyeballing can't.
   Remaining: EC2 deploy, 3-min video, submission form.
+- **Thu Nov 26 (late) — EC2 night, or: how many doors can one firewall hide behind:** the
+  deploy runbook finally met a real box (ap-south-1, Ubuntu 24.04, t3.micro) and its
+  first honest run caught two of its own bugs: (1) it asked the non-root app user to
+  clone into /opt/paperbroker, which only root can create — the script now mkdir+chown's
+  the app dir first, checks .git instead of bare dir-existence, and pre-creates the
+  SQLite data dir; (2) a fresh Ubuntu box has no git until the script's own apt stage,
+  so the runbook's clone-first step needs the manual apt install. Getting TO that run
+  was its own story: the launch wizard defaults to Amazon Linux (login ec2-user, no
+  apt — every `ubuntu@` SSH attempt was doomed regardless of key), "My IP" captured the
+  ISP's IPv6 not IPv4, and a fresh keypair still lost the blame game — the pem route
+  was abandoned for EC2 Instance Connect (browser terminal, no local key at all),
+  which is now the documented path of least resistance on this Windows box. App live
+  at the Elastic IP via nginx + systemd once the script finished its pass.

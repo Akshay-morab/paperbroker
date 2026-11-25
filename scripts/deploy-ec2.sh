@@ -19,11 +19,15 @@ apt-get install -y nginx python3 python3-venv nodejs npm git
 
 echo "==> app user + code"
 id -u "$APP_USER" >/dev/null 2>&1 || useradd -m "$APP_USER"
-if [ ! -d "$APP_DIR" ]; then
+mkdir -p "$APP_DIR"
+chown "$APP_USER":"$APP_USER" "$APP_DIR"
+if [ ! -d "$APP_DIR/.git" ]; then
   sudo -u "$APP_USER" git clone "$REPO_URL" "$APP_DIR"
 else
   sudo -u "$APP_USER" git -C "$APP_DIR" pull --ff-only
 fi
+mkdir -p "$APP_DIR/data"
+chown "$APP_USER":"$APP_USER" "$APP_DIR/data"
 
 echo "==> backend"
 sudo -u "$APP_USER" bash -lc "cd $APP_DIR/backend && python3 -m venv .venv && .venv/bin/pip install -e ."
