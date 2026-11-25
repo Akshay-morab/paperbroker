@@ -85,6 +85,9 @@ On the EC2 box, nginx serves the built frontend and proxies `/api` — one comma
 
 ## Demo logins (for judges)
 
+**Live app: http://15.252.181.255/** — log in with any persona below, or sign up your own
+account (new accounts start with $100,000).
+
 _Seeded personas arrive with the seed script:_
 
 | Persona | Demonstrates |
