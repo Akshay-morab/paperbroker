@@ -133,3 +133,7 @@ The daily ritual (DESIGN.md §8.3): one entry per day — what worked, what bit,
   contract strings touched. The limits editor stays OUT: the thresholds are load-bearing
   for the byte-exact Kane assertions and the tilted persona's trip math, and tunable
   rules would soften the product's thesis. Phase-2 ops console remains the roadmap.
+  First click 500'd: production uvicorn (no --reload) still held the pre-fix seed module
+  in memory even though the fix was pulled to disk — `systemctl restart paperbroker-api`
+  loaded it, and the endpoint verified green via API. Third strike for the house rule:
+  long-lived processes lie; restart before you debug.
